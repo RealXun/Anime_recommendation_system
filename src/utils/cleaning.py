@@ -62,6 +62,19 @@ def rating():
     rating = pd.read_csv(raw_data + "/" + "rating.csv.zip")
     return rating
 
+'''
+A marge of anime.csv with anime_2023_02_15_00_49_41.csv to get more information like cover or japanese tittle
+'''
+def final_df():
+    anime_no_cleaned = pd.read_csv(raw_data + "/" + "anime.csv")# load anime df
+    anime_new = pd.read_csv(raw_data + "/" + "anime_2023_02_15_00_08_28.csv",sep=";")# load anime df
+    anime_final = pd.merge(anime_new[["anime_id",'English_Title',"Japanses_Title","Source","Duration","Rating","Score","Rank","synopsis","Cover"]]\
+        , anime_no_cleaned[["anime_id",'name','genre',"type","episodes","members"]]\
+        , on = "anime_id")
+    anime_final = anime_final[['anime_id',"name", 'English_Title', 'Japanses_Title',"genre", 'type', 'Source', 'Duration', 'episodes', 'Rating', 'Score',"Rank", 'members', 'synopsis',"Cover"]]
+    anime_final= anime_final.rename(columns=str.lower)
+    anime_final.to_csv(raw_data + "/" + "anime_final.csv", index=False)
+    return anime_final
 
 '''
 
@@ -76,8 +89,8 @@ def clean_anime_df(anime):
 
     anime_cleaned["episodes"] = anime_cleaned["episodes"].map(lambda x:np.nan if x=="Unknown" else x)
     anime_cleaned["episodes"].fillna(anime_cleaned["episodes"].median(),inplace = True)
-    anime_cleaned["rating"] = anime_cleaned["rating"].astype(float)
-    anime_cleaned["rating"].fillna(anime_cleaned["rating"].median(),inplace = True)
+    anime_cleaned["score"] = anime_cleaned["score"].astype(float)
+    anime_cleaned["score"].fillna(anime_cleaned["score"].median(),inplace = True)
     anime_cleaned["members"] = anime_cleaned["members"].astype(float)
 
     anime_to_compare = anime_cleaned
@@ -180,7 +193,7 @@ def features_user_based_unsupervised(df_merged):
     import zipfile
 
     # zipping the file
-    with zipfile.ZipFile(processed_data + "/" + 'ziped_features_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED) as zipf:
+    with zipfile.ZipFile(processed_data + "/" + 'features_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED) as zipf:
         zipf.write(processed_data + "/" + "features_user_based_unsupervised.pkl")
         zipf.close()
 
@@ -201,7 +214,7 @@ def create_pivot_table_unsupervised(df_features):
     import zipfile
 
     # zipping the file
-    with zipfile.ZipFile(processed_data + "/" + 'ziped_pivot_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED) as zipf:
+    with zipfile.ZipFile(processed_data + "/" + 'pivot_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED) as zipf:
         zipf.write(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
         zipf.close()
 
