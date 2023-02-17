@@ -73,7 +73,7 @@ def final_df():
         , on = "anime_id")
     anime_final = anime_final[['anime_id',"name", 'English_Title', 'Japanses_Title',"genre", 'type', 'Source', 'Duration', 'episodes', 'Rating', 'Score',"Rank", 'members', 'synopsis',"Cover"]]
     anime_final= anime_final.rename(columns=str.lower)
-    anime_final.to_csv(raw_data + "/" + "anime_final.csv", index=False)
+    anime_final.to_csv(processed_data + "/" + "anime_final.csv", index=False)
     return anime_final
 
 '''
@@ -141,7 +141,8 @@ def prepare_supervised_content_based(anime_cleaned):
     type_dummies = pd.get_dummies(anime_cleaned["type"], prefix="", prefix_sep="")
 
     anime_cleaned = pd.concat([anime_cleaned, type_dummies], axis=1)
-    anime_cleaned = anime_cleaned.drop(columns=["name", "type", "genre","anime_id"])
+    anime_cleaned = anime_cleaned.drop(columns=["name", "type", "genre","anime_id","english_title","japanses_title","source","duration",\
+        "episodes","rating","score","rank","members","synopsis","cover"])
     
     anime_features = anime_cleaned
     anime_features.reset_index(drop=True)

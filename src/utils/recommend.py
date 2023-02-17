@@ -311,10 +311,7 @@ def sort_it(que_user,df,n):
     return df.head(n)
 
 def reco_by_user(id,n,gen,typ):
-    anime = pd.read_csv(raw_data + "/" + "anime.csv")
-    anime_map = anime.copy()
-    anime_map.drop(['episodes','members','rating'],axis=1, inplace=True)
-    chosen_user = anime_map.copy()
+    chosen_user = pd.read_csv(processed_data + "/" + "anime_final.csv")# load anime df
 
     if (gen != "All") and (typ != "All"):
         filtered = chosen_user[chosen_user['genre'].str.contains(gen, regex=False, case=False, na=False)]
