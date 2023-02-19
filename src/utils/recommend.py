@@ -24,8 +24,6 @@ from sklearn.neighbors import NearestNeighbors
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
-#Preparing folder variables
-#os.chdir(os.path.dirname(sys.path[0])) # This command makes the notebook the main path and can work in cascade.
 
 PROJECT_ROOT = os.path.abspath(os.path.join(
                   os.path.dirname(__file__), 
@@ -38,7 +36,10 @@ raw_data = (data_folder + "/" + "_raw")
 processed_data = (data_folder + "/" + "processed")
 content_based_supervised_data = (data_folder + "/" + "processed" + "/" + "content_based_supervised")
 
-shutil.unpack_archive(processed_data + "/" + "pivot_user_based_unsupervised.zip",processed_data)
+
+
+#shutil.unpack_archive(processed_data + "/" + "features_user_based_unsupervised.zip",processed_data)
+#shutil.unpack_archive(processed_data + "/" + "pivot_user_based_unsupervised.zip",processed_data)
 
 ############################################################
 ############################################################
@@ -311,7 +312,10 @@ and indices of the most similar animes. Finally, it returns a list of recommende
 def reco(name, n, df):
     # Load the trained KNN model for user-based unsupervised learning.
     model_knn = joblib.load(saved_models_folder + "/" + "model_matrix_user_based_unsupervised.pkl")
-  
+
+    #shutil.unpack_archive(processed_data + "/" + "pivot_user_based_unsupervised.zip",processed_data)
+    #pivot_df = pd.read_csv(processed_data + "/" + "pivot_user_based_unsupervised.zip")# load anime df
+    
     # Load the pivot table which stores the user rating data.
     pivot_df = joblib.load(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
 
@@ -431,7 +435,7 @@ the resulting dataframe with anime names and their predicted scores.
 '''
 def sort_it(id):
     # Load the pre-trained SVD model
-    algo = joblib.load(saved_models_folder + "/" + "SVD_samople_fit.pkl")
+    algo = joblib.load(saved_models_folder + "/" + "SVD_sample_fit.pkl")
     
     # Load the anime dataframe
     df = pd.read_csv(processed_data + "/" + "anime_final.csv")

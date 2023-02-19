@@ -29,12 +29,6 @@ from surprise.model_selection import cross_validate
 # Unsupervised learner for implementing neighbor searches.
 from sklearn.neighbors import NearestNeighbors
 
-# Utils libraries
-from utils import utils
-from utils import cleaning
-from utils import recommend
-from utils import testing
-from utils import training
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -45,15 +39,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(
                   os.path.dirname(__file__), 
                   os.pardir)
 )
-#data_folder = (PROJECT_ROOT + "\data")
-#
-#saved_models_folder = (data_folder + "\saved_models")
-#raw_data = (data_folder + "\_raw")
-#processed_data = (data_folder + "\processed")
-#content_based_supervised_data = (data_folder + "\processed\content_based_supervised")
 
 data_folder = (PROJECT_ROOT + "/" + "data")
-
 saved_models_folder = (data_folder + "/" + "saved_models")
 raw_data = (data_folder + "/" + "_raw")
 processed_data = (data_folder + "/" + "processed")
@@ -109,22 +96,3 @@ def matrix_creation_and_training(df_pivot):
 #                                                            #
 ##############################################################
 ##############################################################
-
-def supervised_prepare_training(ratingdf):
-    # using groupby and some fancy logic
-    reader = Reader(rating_scale=(1,10))
-    data = Dataset.load_from_df(ratingdf[['user_id', 'anime_id', 'rating']], reader)
-    
-    size = 100000
-    rating_sample = ratingdf.groupby("rating", group_keys=False).apply(lambda x: x.sample(int(np.rint(size*len(x)/len(ratingdf))))).sample(frac=1).reset_index(drop=True)
-    
-    # Saving the table to pickle
-    joblib.dump(data,content_based_supervised_data + "/" + "rating_sample.pkl")
-
-    reader = Reader(rating_scale=(1,10))
-    data_sample = Dataset.load_from_df(rating_sample[['user_id', 'anime_id', 'rating']], reader)
-
-    # Saving the table to pickle
-    joblib.dump(data,content_based_supervised_data + "/" + "data_sample.pkl")
-
-    return data_sample

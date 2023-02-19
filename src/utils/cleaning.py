@@ -14,13 +14,9 @@ import numpy as np # functions for working in domain of linear algebra, fourier 
 import pandas as pd # data analysis and manipulation tool
 import joblib # set of tools to provide lightweight pipelining in Python
 
-# Utils libraries
-from utils import cleaning
-from utils import recommend
-from utils import testing
-from utils import training
-
-
+from surprise import Dataset, Reader, accuracy
+from surprise.model_selection import GridSearchCV, train_test_split, cross_validate
+from surprise import SVD, SVDpp, SlopeOne, NMF, NormalPredictor, KNNBaseline, KNNBasic, KNNWithMeans, KNNWithZScore, BaselineOnly, CoClustering
 
 
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -48,7 +44,8 @@ content_based_supervised_data = (data_folder + "/" + "processed" + "/" + "conten
 ############################################################
 
 '''
-
+This function reads a CSV file called "anime.csv" from a 
+directory called raw_data and returns the contents as a Pandas DataFrame.
 '''
 def anime():
     anime = pd.read_csv(raw_data + "/" + "anime.csv")
@@ -56,25 +53,42 @@ def anime():
 
 
 '''
-
+This function reads a CSV file called "rating.csv" from a 
+directory called raw_data and returns the contents as a Pandas DataFrame.
 '''
 def rating():
     rating = pd.read_csv(raw_data + "/" + "rating.csv.zip")
     return rating
 
 '''
-A marge of anime.csv with anime_2023_02_15_00_49_41.csv to get more information like cover or japanese tittle
+A marge of anime.csv with anime_2023_02_15_00_08_28.csv to get more information like cover or japanese tittle
 '''
 def final_df():
-    anime_no_cleaned = pd.read_csv(raw_data + "/" + "anime.csv")# load anime df
-    anime_new = pd.read_csv(raw_data + "/" + "anime_2023_02_15_00_08_28.csv",sep=";")# load anime df
-    anime_final = pd.merge(anime_new[["anime_id",'English_Title',"Japanses_Title","Source","Duration","Rating","Score","Rank","synopsis","Cover"]]\
-        , anime_no_cleaned[["anime_id",'name','genre',"type","episodes","members"]]\
-        , on = "anime_id")
-    anime_final = anime_final[['anime_id',"name", 'English_Title', 'Japanses_Title',"genre", 'type', 'Source', 'Duration', 'episodes', 'Rating', 'Score',"Rank", 'members', 'synopsis',"Cover"]]
-    anime_final= anime_final.rename(columns=str.lower)
+    # Load the original anime dataframe
+    anime_no_cleaned = pd.read_csv(raw_data + "/" + "anime.csv")
+    
+    # Load the updated anime dataframe
+    anime_new = pd.read_csv(raw_data + "/" + "anime_2023_02_15_00_08_28.csv", sep=";")
+    
+    # Merge the two dataframes on the anime_id column
+    anime_final = pd.merge(
+        anime_new[["anime_id", "English_Title", "Japanses_Title", "Source", "Duration", "Rating", "Score", "Rank", "synopsis", "Cover"]],
+        anime_no_cleaned[["anime_id", "name", "genre", "type", "episodes", "members"]],
+        on="anime_id"
+    )
+    
+    # Reorder and select columns
+    anime_final = anime_final[["anime_id", "name", "English_Title", "Japanses_Title", "genre", "type", "Source", "Duration", "episodes", "Rating", "Score", "Rank", "members", "synopsis", "Cover"]]
+    
+    # Rename columns to lower case
+    anime_final = anime_final.rename(columns=str.lower)
+    
+    # Save the final dataframe to a CSV file in the processed data directory
     anime_final.to_csv(processed_data + "/" + "anime_final.csv", index=False)
+    
+    # Return the final dataframe
     return anime_final
+
 
 '''
 
@@ -155,7 +169,7 @@ def prepare_supervised_content_based(anime_cleaned):
 #############################################################
 #############################################################
 #                                                           #
-#--------- Unsupervised User  based recommendation ---------#
+#------ Unsupervised User rating based recommendation ------#
 #                                                           #
 #############################################################
 #############################################################
@@ -164,7 +178,7 @@ def prepare_supervised_content_based(anime_cleaned):
 '''
 '''
 def merging(df):
-    ratingdf = cleaning.rating()
+    ratingdf = rating()
     # Añadimos suffixes for ratingdf ya que en los dos df la columna rating tiene el mismo nombre
     merged_df=pd.merge(df,ratingdf,on='anime_id',suffixes= ['', '_user']) 
 
@@ -189,6 +203,15 @@ def features_user_based_unsupervised(df_merged):
 
     # Saving the pivot table to pickle
     joblib.dump(features,processed_data + "/" + "features_user_based_unsupervised.pkl")
+
+    import zipfile as ZipFile
+    import zipfile
+
+    dir, base_filename = os.path.split(processed_data + "/" + "features_user_based_unsupervised.pkl")
+    os.chdir(dir)
+    zip = zipfile.ZipFile('features_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED)
+    zip.write(base_filename)
+    zip.close()
 
     return features
 
@@ -243,3 +266,22 @@ def supervised_rating_cleaning(rating):
     ratingdf = ratingdf.reset_index()
     ratingdf.drop('index', axis=1,inplace=True)
     return ratingdf
+
+def supervised_prepare_training(ratingdf):
+    # using groupby and some fancy logic
+    reader = Reader(rating_scale=(1,10))
+    data = Dataset.load_from_df(ratingdf[['user_id', 'anime_id', 'rating']], reader)
+
+    # Saving the file to pickle
+    joblib.dump(data,processed_data + "/" + "data_reader_all.pkl")
+
+    size = 100000
+    rating_sample = ratingdf.groupby("rating", group_keys=False).apply(lambda x: x.sample(int(np.rint(size*len(x)/len(ratingdf))))).sample(frac=1).reset_index(drop=True)
+    
+    reader = Reader(rating_scale=(1,10))
+    data_sample = Dataset.load_from_df(rating_sample[['user_id', 'anime_id', 'rating']], reader)
+
+    # Saving the table to pickle
+    joblib.dump(data_sample,processed_data + "/" + "data_reader_sample.pkl")
+
+    return data_sample

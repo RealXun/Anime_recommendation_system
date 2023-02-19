@@ -26,13 +26,6 @@ from surprise.model_selection import cross_validate
 # Unsupervised learner for implementing neighbor searches.
 from sklearn.neighbors import NearestNeighbors
 
-# Utils libraries
-from utils import utils
-from utils import cleaning
-from utils import recommend
-from utils import testing
-from utils import training
-
 pd.options.mode.chained_assignment = None  # default='warn'
 
 #Preparing folder variables
@@ -111,7 +104,7 @@ def evaluate_svd_model(data_sample):
     algo.fit(data_sample.build_full_trainset())
 
     # # Serialización del modelo
-    joblib.dump(algo,saved_models_folder + "/" + "SVD_samople_fit.pkl")
+    joblib.dump(algo,saved_models_folder + "/" + "results_SVD_final_fit.pkl")
 
     results_df = pd.DataFrame.from_dict(gs.cv_results)
     
