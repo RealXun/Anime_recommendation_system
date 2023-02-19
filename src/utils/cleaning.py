@@ -190,15 +190,6 @@ def features_user_based_unsupervised(df_merged):
     # Saving the pivot table to pickle
     joblib.dump(features,processed_data + "/" + "features_user_based_unsupervised.pkl")
 
-    import zipfile as ZipFile
-    import zipfile
-
-    # zipping the file
-    with zipfile.ZipFile(processed_data + "/" + 'features_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED) as zipf:
-        zipf.write(processed_data + "/" + "features_user_based_unsupervised.pkl")
-        zipf.close()
-
-
     return features
 
 
@@ -211,13 +202,22 @@ def create_pivot_table_unsupervised(df_features):
     # Saving the table to pickle
     joblib.dump(pivot_df,processed_data + "/" + "pivot_user_based_unsupervised.pkl")
 
+    #import zipfile as ZipFile
+    #import zipfile
+
+    ## zipping the file
+    #with zipfile.ZipFile(processed_data + "/" + 'pivot_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED) as zipf:
+    #    zipf.write(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
+    #    zipf.close()
+
     import zipfile as ZipFile
     import zipfile
 
-    # zipping the file
-    with zipfile.ZipFile(processed_data + "/" + 'pivot_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED) as zipf:
-        zipf.write(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
-        zipf.close()
+    dir, base_filename = os.path.split(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
+    os.chdir(dir)
+    zip = zipfile.ZipFile('pivot_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED)
+    zip.write(base_filename)
+    zip.close()
 
     to_find_index=pivot_df.reset_index()
     to_find_index = to_find_index[["name"]]

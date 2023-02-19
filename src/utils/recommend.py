@@ -38,9 +38,6 @@ raw_data = (data_folder + "/" + "_raw")
 processed_data = (data_folder + "/" + "processed")
 content_based_supervised_data = (data_folder + "/" + "processed" + "/" + "content_based_supervised")
 
-
-
-shutil.unpack_archive(processed_data + "/" + "features_user_based_unsupervised.zip",processed_data)
 shutil.unpack_archive(processed_data + "/" + "pivot_user_based_unsupervised.zip",processed_data)
 
 ############################################################
@@ -314,10 +311,7 @@ and indices of the most similar animes. Finally, it returns a list of recommende
 def reco(name, n, df):
     # Load the trained KNN model for user-based unsupervised learning.
     model_knn = joblib.load(saved_models_folder + "/" + "model_matrix_user_based_unsupervised.pkl")
-
-    #shutil.unpack_archive(processed_data + "/" + "pivot_user_based_unsupervised.zip",processed_data)
-    #pivot_df = pd.read_csv(processed_data + "/" + "pivot_user_based_unsupervised.zip")# load anime df
-    
+  
     # Load the pivot table which stores the user rating data.
     pivot_df = joblib.load(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
 
