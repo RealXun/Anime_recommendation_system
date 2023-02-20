@@ -112,11 +112,23 @@ def matrix_creation_and_training(df_pivot):
     model_knn = model_knn.fit(matrix)
 
     # Save the trained k-Nearest Neighbors model to a file using the pickle module
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
     with open(saved_models_folder + "/" + "nearest_user_base_new_model.pkl", "wb") as f:
         
         pickle.dump(model_knn, f)
 
+=======
+    with open(saved_models_folder + "/" + "nearest_user_base_new_model.pkl", "wb") as f:
+        pickle.dump(model_knn, f)
+
+>>>>>>> Stashed changes
+=======
+    with open(saved_models_folder + "/" + "nearest_user_base_new_model.pkl", "wb") as f:
+        pickle.dump(model_knn, f)
+
+>>>>>>> Stashed changes
     # Return the trained k-Nearest Neighbors model
     return model_knn
 
