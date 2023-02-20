@@ -36,7 +36,4 @@ def it_is_about():
         font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
         </style> """, unsafe_allow_html=True)
     st.markdown('<p class="font">Anime Recommendation systems based on Data from MyAnimeList</p>', unsafe_allow_html=True)
-    st.write("The goal of this project is that according to the user's anime viewing history we can recommend a list of anime that suits their tastes.\nIn order to do this we are going to create 3 types or recommendation system")
-
-    with open(body_folder + "/" + "about_text.md",'r', encoding='utf-8') as f:
-        st.markdown(f.read(), unsafe_allow_html=True)      
+    st.write("The goal of this project is that according to the user's anime viewing history we can recommend a list of anime that suits their tastes.\nIn order to do this we are going to create 3 types or recommendation system")     
