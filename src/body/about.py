@@ -30,12 +30,7 @@ cover_images = (images + "/" + "Cover_images")
 def it_is_about():
     #Add the cover image for the cover page. Used a little trick to center the image
              # To display the header text using css style
-    with st.expander("See explanation"):
-    st.write(\"\"\"
-        The chart above shows some numbers I picked for you.
-        I rolled actual dice for these, so they're *guaranteed* to
-        be random.
-    \"\"\")
+
     #st.image("https://static.streamlit.io/examples/dice.jpg")
     st.markdown(""" <style> .font {
         font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
@@ -44,6 +39,4 @@ def it_is_about():
     st.write("The goal of this project is that according to the user's anime viewing history we can recommend a list of anime that suits their tastes.\nIn order to do this we are going to create 3 types or recommendation system")
 
     with open(body_folder + "/" + "about_text.md",'r', encoding='utf-8') as f:
-        st.markdown(f.read(), unsafe_allow_html=True)
-        
-
+        st.markdown(f.read(), unsafe_allow_html=True)      
