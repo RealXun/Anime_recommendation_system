@@ -30,7 +30,13 @@ cover_images = (images + "/" + "Cover_images")
 def it_is_about():
     #Add the cover image for the cover page. Used a little trick to center the image
              # To display the header text using css style
-
+    with st.expander("See explanation"):
+    st.write(\"\"\"
+        The chart above shows some numbers I picked for you.
+        I rolled actual dice for these, so they're *guaranteed* to
+        be random.
+    \"\"\")
+    #st.image("https://static.streamlit.io/examples/dice.jpg")
     st.markdown(""" <style> .font {
         font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
         </style> """, unsafe_allow_html=True)
@@ -39,13 +45,5 @@ def it_is_about():
 
     with open(body_folder + "/" + "about_text.md",'r', encoding='utf-8') as f:
         st.markdown(f.read(), unsafe_allow_html=True)
-    with open(body_folder + "/" + "about_text.md",'r', encoding='utf-8') as f:
-        st.markdown(f.read(), unsafe_allow_html=True)
         
-    with st.expander("See explanation"):
-    st.write(\"\"\"
-        The chart above shows some numbers I picked for you.
-        I rolled actual dice for these, so they're *guaranteed* to
-        be random.
-    \"\"\")
-    #st.image("https://static.streamlit.io/examples/dice.jpg")
+
