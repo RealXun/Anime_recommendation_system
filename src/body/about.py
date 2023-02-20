@@ -39,6 +39,8 @@ def it_is_about():
 
     with open(body_folder + "/" + "about_text.md",'r', encoding='utf-8') as f:
         st.markdown(f.read(), unsafe_allow_html=True)
+    with open(body_folder + "/" + "about_text.md",'r', encoding='utf-8') as f:
+        st.markdown(f.read(), unsafe_allow_html=True)
         
     with st.expander("See explanation"):
     st.write(\"\"\"
