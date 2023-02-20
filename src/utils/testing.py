@@ -113,7 +113,7 @@ the best combination of hyperparameters based on the provided parameter grid.
 It prints the best RMSE and MAE scores and their corresponding parameters, 
 and returns a results dataframe.
 '''
-def evaluate_svd_model(data_sample):
+def evaluate_svd_model(data):
     # Define parameter grid for grid search
     param_grid = {'n_factors': [50, 100, 150], 
                 'n_epochs': [20, 30, 40], 
@@ -132,7 +132,7 @@ def evaluate_svd_model(data_sample):
     print("Best parameters for RMSE:", gs.best_params['rmse'])
     print("Best parameters for MAE:", gs.best_params['mae'])
 
-    return results_df
+    return gs
 
 
 
