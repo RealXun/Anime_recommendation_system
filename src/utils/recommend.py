@@ -255,7 +255,7 @@ If the user query has any misspelling, the function tries to find the closest ma
 the query and provides recommendations based on that.
 '''
 def print_similar_animes(query):
-    ind = joblib.load(saved_models_folder + "/" + "model_based_content.pkl") # Load the trained model
+    ind = joblib.load(saved_models_folder + "/" + "kNearest_user_content_new_model.pkl") # Load the trained model
     #anime = joblib.load(processed_data + "/" + "_anime_to_compare_with_name.pkl")
     anime = pd.read_csv(processed_data + "/" + "_anime_to_compare_with_name.csv")# load anime df
     closest_title, distance_score = finding_the_closest_title(query,anime) # find the closest title
@@ -311,7 +311,7 @@ and indices of the most similar animes. Finally, it returns a list of recommende
 '''
 def reco(name, n, df):
     # Load the trained KNN model for user-based unsupervised learning.
-    model_knn = joblib.load(saved_models_folder + "/" + "model_matrix_user_based_unsupervised.pkl")
+    model_knn = joblib.load(saved_models_folder + "/" + "nearest_user_content_new_model.pkl")
 
     #shutil.unpack_archive(processed_data + "/" + "pivot_user_based_unsupervised.zip",processed_data)
     #pivot_df = pd.read_csv(processed_data + "/" + "pivot_user_based_unsupervised.zip")# load anime df
@@ -435,7 +435,7 @@ the resulting dataframe with anime names and their predicted scores.
 '''
 def sort_it(id):
     # Load the pre-trained SVD model
-    algo = joblib.load(saved_models_folder + "/" + "SVD_sample_fit.pkl")
+    algo = joblib.load(saved_models_folder + "/" + "SVD_new_model.pkl")
     
     # Load the anime dataframe
     df = pd.read_csv(processed_data + "/" + "anime_final.csv")
