@@ -36,4 +36,3 @@ def it_is_about():
         font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
         </style> """, unsafe_allow_html=True)
     st.markdown('<p class="font">Anime Recommendation systems based on Data from MyAnimeList</p>', unsafe_allow_html=True)
-

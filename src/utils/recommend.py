@@ -311,7 +311,6 @@ and indices of the most similar animes. Finally, it returns a list of recommende
 '''
 def reco(name, n, df):
     # Load the trained KNN model for user-based unsupervised learning.
-
     model_knn = joblib.load(saved_models_folder + "/" + "nearest_user_base_new_model.pkl")
 
     #shutil.unpack_archive(processed_data + "/" + "pivot_user_based_unsupervised.zip",processed_data)
