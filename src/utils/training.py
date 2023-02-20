@@ -25,6 +25,7 @@ from surprise import Dataset, Reader, NormalPredictor, KNNBasic, KNNWithMeans, S
 ## scikit Cross validation iterators libraries
 from sklearn.model_selection import GridSearchCV
 from surprise.model_selection import cross_validate
+from surprise.model_selection import train_test_split
 
 # Unsupervised learner for implementing neighbor searches.
 from sklearn.neighbors import NearestNeighbors
@@ -55,14 +56,33 @@ content_based_supervised_data = (data_folder + "/" + "processed" + "/" + "conten
 ############################################################
 ############################################################
 
+'''
+The function model_NearestNeighbors builds and trains a 
+k-Nearest Neighbors model on a given dataset, using specified 
+parameters. It then saves the indices of the nearest neighbors 
+to a file and returns them.
+'''
+
 def model_NearestNeighbors(df):
-    # Build and "train" the model
+    # Build and "train" the model using NearestNeighbors algorithm
+    # algorithm: algorithm used to compute the nearest neighbors (‘auto’, ‘ball_tree’, ‘kd_tree’, ‘brute’)
+    # leaf_size: leaf size passed to BallTree or KDTree
+    # metric: distance metric used for the tree. Can be 'minkowski', 'euclidean', etc.
+    # n_neighbors: number of neighbors to use for kneighbors queries
+    # p: power parameter for the Minkowski metric. When p = 1, this is equivalent to using manhattan_distance
     neigh = NearestNeighbors(algorithm= 'auto', leaf_size= 30, metric= 'minkowski', n_neighbors= 100, p= 1, radius= 0.0).fit(df)
+
+    # Get the distances and indices of the nearest neighbors
+    # distances: array representing the lengths to points, only present if return_distance=True
+    # indices: indices of the nearest points in the population matrix
     distances, indices = neigh.kneighbors(df)
 
-    joblib.dump(indices,saved_models_folder + "/" + "model_based_content.pkl")
+    # Save the model to a file using joblib.dump
+    joblib.dump(indices, saved_models_folder + "/" + "kNearest_user_content_new_model.pkl")
 
+    # Return the indices of the nearest neighbors
     return indices
+
 
 
 #############################################################
@@ -73,19 +93,31 @@ def model_NearestNeighbors(df):
 #############################################################
 #############################################################
 
+'''
+The function matrix_creation_and_training converts a pivot table 
+of user-item ratings into a sparse matrix using the csr_matrix function. 
+It then fits a kNN model on this matrix using NearestNeighbors, 
+and saves the model to a file using the pickle module. This process 
+is an unsupervised learning technique for recommendation systems, 
+where the goal is to identify similar items or users based on their ratings.
+'''
 def matrix_creation_and_training(df_pivot):
-
+    # Convert pivot table of user-item ratings to a sparse matrix in CSR format
     matrix = csr_matrix(df_pivot.values)
 
-    model_knn = NearestNeighbors(n_neighbors=2,metric = 'euclidean', algorithm = 'brute',p=2)
+    # Create k-Nearest Neighbors model with 2 neighbors, Euclidean distance metric, brute force algorithm, and p-norm=2
+    model_knn = NearestNeighbors(n_neighbors=2, metric='euclidean', algorithm='brute', p=2)
+
+    # Fit k-Nearest Neighbors model on the user-item rating matrix
     model_knn = model_knn.fit(matrix)
 
-    # Saving the pivot table to pickle
-    fichero = open(saved_models_folder + "/" +"model_matrix_user_based_unsupervised.pkl","wb")
-    pickle.dump(model_knn,fichero)
-    fichero.close()
+    # Save the trained k-Nearest Neighbors model to a file using the pickle module
+    with open(saved_models_folder + "/" + "model_matrix_user_based_unsupervised.pkl", "wb") as f:
+        pickle.dump(model_knn, f)
 
+    # Return the trained k-Nearest Neighbors model
     return model_knn
+
 
 
 
@@ -96,3 +128,36 @@ def matrix_creation_and_training(df_pivot):
 #                                                            #
 ##############################################################
 ##############################################################
+
+'''
+In this code, the data is split into training and testing sets using 
+the train_test_split() function from surprise library. Then, an instance 
+of the SVD algorithm is created with the best parameters obtained 
+from the grid search, and it is trained on the training set using the fit() method.
+'''
+def train_test_svd():
+ 
+        # Load model with best parameters
+        gs = joblib.load(saved_models_folder + "/" + "SVD_model_best_params.pkl")
+        data = joblib.load(processed_data + "/" + "data_reader_sample.pkl")    
+
+        # Split data into training and testing sets
+        trainset, testset = train_test_split(data, test_size=0.2)       
+        # Train SVD algorithm on training set with best parameters
+        best_params = SVD(n_factors=gs.best_params['rmse']['n_factors'], 
+                n_epochs=gs.best_params['rmse']['n_epochs'], 
+                lr_all=gs.best_params['rmse']['lr_all'], 
+                reg_all=gs.best_params['rmse']['reg_all'])
+        best_params.fit(trainset)       
+        # Make predictions on testing set
+        predictions = best_params.test(testset) 
+        # Calculate RMSE and MAE
+        rmse = accuracy.rmse(predictions)
+        mae = accuracy.mae(predictions) 
+        print("RMSE:", rmse)
+        print("MAE:", mae)      
+        # # Serialización del modelo
+        import pickle
+        joblib.dump(best_params,saved_models_folder + "/" + "SVD_new_model.pkl")
+
+

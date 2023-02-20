@@ -19,6 +19,9 @@ from sklearn.preprocessing import MinMaxScaler # Transform features by scaling e
 # Python scikit for building and analyzing recommender systems that deal with explicit rating data
 from surprise import Dataset, Reader, NormalPredictor, KNNBasic, KNNWithMeans, SVD, accuracy
 
+from surprise import SVD
+from surprise.model_selection import GridSearchCV
+
 ## scikit Cross validation iterators libraries
 from sklearn.model_selection import GridSearchCV
 from surprise.model_selection import cross_validate
@@ -52,18 +55,36 @@ content_based_supervised_data = (data_folder + "/" + "processed" + "/" + "conten
 ############################################################
 ############################################################
 
+'''
+The function param_NearestNeighbors uses GridSearchCV from scikit-learn 
+to perform a grid search over a range of hyperparameters for the 
+NearestNeighbors model. It takes a dataframe df as input and returns 
+the best hyperparameters found during the grid search. The hyperparameters 
+being searched over include n_neighbors, radius, algorithm, leaf_size, 
+metric, and p. The scoring metric being used is "accuracy" and the refit 
+parameter is set to "precision_score". cv=2 sets the number of cross-validation 
+folds to 2, and n_jobs=-1 sets the number of CPU cores used to parallelize 
+the search to be the maximum available.
+'''
+
 def param_NearestNeighbors(df):
+    # Define dictionary of hyperparameters to test using GridSearchCV
+    parametros = {
+        'n_neighbors': range(1, 10),
+        'radius': np.linspace(0, 1, 11),
+        'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
+        'leaf_size': [30],
+        'metric': ['minkowski', 'euclidean', 'manhattan'],
+        'p': range(1, 2)
+    }
 
-    parametros = { 'n_neighbors' : range(1,10),
-               'radius' : np.linspace(0,1,11),
-               'algorithm' : ['auto', 'ball_tree', 'kd_tree', 'brute'],
-			   'leaf_size' : [30],
-			   'metric' : ['minkowski','euclidean','manhattan'],
-			   'p' : range(1,2)
-			   }
-    model_knn = GridSearchCV(NearestNeighbors(), parametros, scoring="accuracy",refit='precision_score', cv=2, n_jobs = -1).fit(df)
+    # Create GridSearchCV object with NearestNeighbors algorithm
+    # and hyperparameters defined in the parametros dictionary
+    model_knn = GridSearchCV(NearestNeighbors(), parametros, scoring='accuracy', refit='precision_score', cv=2, n_jobs=-1).fit(df)
 
+    # Return the best hyperparameters found by the grid search
     return model_knn.best_params_
+
 
 
 #############################################################
@@ -86,26 +107,71 @@ def param_NearestNeighbors(df):
 ##############################################################
 ##############################################################
 
+'''
+This function evaluates the SVD algorithm using GridSearchCV to find 
+the best combination of hyperparameters based on the provided parameter grid. 
+It prints the best RMSE and MAE scores and their corresponding parameters, 
+and returns a results dataframe.
+'''
 def evaluate_svd_model(data_sample):
-    param_grid = {'n_factors':[50,100,150],'n_epochs':[20,30],  'lr_all':[0.005,0.01],'reg_all':[0.02,0.1]}
-    gs = GridSearchCV(SVD, param_grid, measures=["rmse", "mae"], cv=3)
-
-    gs.fit(data_sample)
-    params = gs.best_params['rmse']
-
-    # best RMSE score
-    print(gs.best_score["rmse"])
-
-    # combination of parameters that gave the best RMSE score
-    print(gs.best_params["rmse"])
-
-    # We can now use the algorithm that yields the best rmse:
-    algo = gs.best_estimator["rmse"]
-    algo.fit(data_sample.build_full_trainset())
-
-    # # Serialización del modelo
-    joblib.dump(algo,saved_models_folder + "/" + "results_SVD_final_fit.pkl")
-
-    results_df = pd.DataFrame.from_dict(gs.cv_results)
+    # Define parameter grid for grid search
+    param_grid = {'n_factors': [50, 100, 150], 
+                'n_epochs': [20, 30, 40], 
+                'lr_all': [0.002, 0.005, 0.01],
+                'reg_all': [0.02, 0.05, 0.1]}
     
+    # Create GridSearchCV object with SVD algorithm
+    gs = GridSearchCV(SVD, param_grid, measures=['rmse', 'mae'], cv=3)
+
+    # Fit GridSearchCV object to data
+    gs.fit(data)
+
+    # Print best RMSE and MAE scores, as well as corresponding parameters
+    print("Best RMSE score:", gs.best_score['rmse'])
+    print("Best MAE score:", gs.best_score['mae'])
+    print("Best parameters for RMSE:", gs.best_params['rmse'])
+    print("Best parameters for MAE:", gs.best_params['mae'])
+
     return results_df
+
+
+
+'''
+defines a parameter grid for hyperparameter tuning in a collaborative filtering algorithm.
+Then create a GridSearchCV object with the SVD algorithm and a parameter grid consisting 
+of a range of hyperparameters. The GridSearchCV function then performs a grid search on 
+yhe parameter grid to find the best combination of hyperparameters that minimizes the 
+RMSE and MAE scores. The best RMSE and MAE scores and the corresponding parameters 
+are printed out.
+'''
+
+def find_best_svd():
+    from surprise import SVD
+    from surprise.model_selection import GridSearchCV
+    data = joblib.load(processed_data + "/" + "data_reader_sample.pkl")
+
+    # Define parameter grid for grid search
+    param_grid = {'n_factors': [50, 100, 150], 
+                'n_epochs': [20, 30, 40], 
+                'lr_all': [0.002, 0.005, 0.01],
+                'reg_all': [0.02, 0.05, 0.1]}
+
+    # Create GridSearchCV object with SVD algorithm
+    gs = GridSearchCV(SVD, param_grid, measures=['rmse', 'mae'], cv=3)
+
+    # Fit GridSearchCV object to data
+    gs.fit(data)
+
+    # Print best RMSE and MAE scores, as well as corresponding parameters
+    print("Best RMSE score:", gs.best_score['rmse'])
+    print("Best MAE score:", gs.best_score['mae'])
+    print("Best parameters for RMSE:", gs.best_params['rmse'])
+    print("Best parameters for MAE:", gs.best_params['mae'])
+
+    # Save model with best parameters
+    joblib.dump(gs,saved_models_folder + "/" + "SVD_model_best_params.pkl")
+
+    # Save best parameters
+    joblib.dump(gs.best_params,saved_models_folder + "/" + "best_params_for_SVD.pkl", compress = 1)
+
+    return gs

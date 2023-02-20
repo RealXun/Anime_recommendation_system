@@ -61,7 +61,10 @@ def rating():
     return rating
 
 '''
-A marge of anime.csv with anime_2023_02_15_00_08_28.csv to get more information like cover or japanese tittle
+This function merges the two dataframes of anime data, reorders and selects columns, 
+renames the columns to lowercase, and saves the resulting dataframe to a CSV file. 
+The merged and cleaned dataframe is returned as the output.
+In other words, we get more information like to get more information like cover or japanese tittle
 '''
 def final_df():
     # Load the original anime dataframe
@@ -91,6 +94,11 @@ def final_df():
 
 
 '''
+The function clean_anime_df() takes an anime dataframe as input and performs several 
+cleaning and preprocessing steps, such as removing special characters from anime names, 
+converting all names to lowercase, filling missing values for "episodes" and "score" 
+columns with their median, dropping rows with null values for "genre" or "type" columns, 
+and saving the cleaned dataframe to a CSV file. The cleaned dataframe is also returned as output.
 
 '''
 def clean_anime_df(anime):
@@ -126,7 +134,12 @@ def clean_anime_df(anime):
 
 
 '''
-
+This function prepares the content-based features for a supervised 
+learning model. It first splits the genres into separate columns and 
+gets unique genres. It then creates dummy variables for genres and 
+type, and sum up the columns for the same genre to have a single 
+column for each genre. Finally, it drops irrelevant columns and saves 
+the resulting dataframe to a CSV file. The function returns the resulting dataframe.
 '''
 def prepare_supervised_content_based(anime_cleaned):
 
@@ -176,6 +189,9 @@ def prepare_supervised_content_based(anime_cleaned):
 
 
 '''
+This function merges the given DataFrame with a rating DataFrame 
+based on the anime_id column. It then renames the 'rating_user' 
+column to 'user_rating' and returns the merged DataFrame.
 '''
 def merging(df):
     ratingdf = rating()
@@ -189,34 +205,45 @@ def merging(df):
 
 
 '''
+This function takes in a merged dataframe, preprocesses the data to drop users 
+who have not given any ratings and users who have given fewer ratings than a 
+specified threshold value, and saves the resulting pivot table to a pickle file. 
+It then compresses the pickle file into a zip file and returns the resulting pivot table.
 '''
 def features_user_based_unsupervised(df_merged):
-
     # A user who hasn't given any ratings (-1) has added no value to the engine. So let's drop it.
     features=df_merged.copy()
     features["user_rating"].replace({-1: np.nan}, inplace=True)
     features = features.dropna(axis = 0, how ='any')
-
+    # Drop rows with NaN values (user has not given any ratings)
+    
     # There are users who has rated only once. So we should think if we want to consider only users with a minimin ratings as threshold value. Let's say 50.
     counts = features['user_id'].value_counts()
     features = features[features['user_id'].isin(counts[counts >= 200].index)]
-
+    # Only consider users with at least 200 ratings
+    
     # Saving the pivot table to pickle
     joblib.dump(features,processed_data + "/" + "features_user_based_unsupervised.pkl")
-
+    
+    # Create a zip file for the saved pickle file
     import zipfile as ZipFile
     import zipfile
-
     dir, base_filename = os.path.split(processed_data + "/" + "features_user_based_unsupervised.pkl")
     os.chdir(dir)
     zip = zipfile.ZipFile('features_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED)
     zip.write(base_filename)
     zip.close()
-
+    
+    # Return the cleaned and filtered features dataframe
     return features
 
 
+
 '''
+The function create_pivot_table_unsupervised creates a pivot table with rows as anime titles, 
+columns as user IDs, and the corresponding ratings as values. The pivot table is then saved 
+to a pickle file and zipped. The function also saves a separate file containing only the 
+anime titles. Finally, the pivot table is returned.
 '''
 def create_pivot_table_unsupervised(df_features):
     # This pivot table consists of rows as title and columns as user id, this will help us to create sparse matrix which can be very helpful in finding the cosine similarity
@@ -224,14 +251,6 @@ def create_pivot_table_unsupervised(df_features):
 
     # Saving the table to pickle
     joblib.dump(pivot_df,processed_data + "/" + "pivot_user_based_unsupervised.pkl")
-
-    #import zipfile as ZipFile
-    #import zipfile
-
-    ## zipping the file
-    #with zipfile.ZipFile(processed_data + "/" + 'pivot_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED) as zipf:
-    #    zipf.write(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
-    #    zipf.close()
 
     import zipfile as ZipFile
     import zipfile
@@ -259,7 +278,12 @@ def create_pivot_table_unsupervised(df_features):
 #                                                            #
 ##############################################################
 ##############################################################
-
+'''
+This function takes a pandas DataFrame named "rating" and removes all 
+the rows where the "rating" column has a value of 0 or less, and 
+then resets the index of the resulting DataFrame. It returns the 
+cleaned DataFrame.
+'''
 # Cleaning the data
 def supervised_rating_cleaning(rating):
     ratingdf = rating[rating.rating>0]
@@ -267,21 +291,48 @@ def supervised_rating_cleaning(rating):
     ratingdf.drop('index', axis=1,inplace=True)
     return ratingdf
 
-def supervised_prepare_training(ratingdf):
-    # using groupby and some fancy logic
-    reader = Reader(rating_scale=(1,10))
-    data = Dataset.load_from_df(ratingdf[['user_id', 'anime_id', 'rating']], reader)
 
-    # Saving the file to pickle
-    joblib.dump(data,processed_data + "/" + "data_reader_all.pkl")
 
+'''
+The code reads two CSV files (anime.csv and rating.csv.zip) and loads them into dataframes. 
+Then it creates a subset of the rating dataframe containing only rows where the rating is 
+greater than 0 and removes the index column. Next, it samples a subset of the data with 
+a specified size, grouped by the rating column.
+'''
+def supervised_prepare_training():
+    # Load 'anime.csv' file into a pandas DataFrame object called 'anime'
+    anime = pd.read_csv(raw_data + "/" + "anime.csv")
+
+    # Load 'rating.csv.zip' file into a pandas DataFrame object called 'rating'
+    rating = pd.read_csv(raw_data + "/" + "rating.csv.zip")
+
+    # Create a new DataFrame 'anime_mapping' that is a copy of the 'anime' DataFrame and remove the 'episodes', 'members', and 'rating' columns
+    anime_mapping = anime.copy()
+    anime_mapping.drop(['episodes','members','rating'],axis=1, inplace=True)
+
+    # Filter out all ratings less than or equal to 0 and reset the index of the DataFrame
+    ratingdf = rating[rating.rating>0]
+    ratingdf = ratingdf.reset_index()
+
+    # Drop the 'index' column and update the DataFrame in-place
+    ratingdf.drop('index', axis=1, inplace=True)
+
+    # Get the shape of the DataFrame 'ratingdf'
+    ratingdf.shape
+
+    # Set the size to 100,000 and sample from the 'ratingdf' DataFrame based on the proportion of ratings for each score
     size = 100000
-    rating_sample = ratingdf.groupby("rating", group_keys=False).apply(lambda x: x.sample(int(np.rint(size*len(x)/len(ratingdf))))).sample(frac=1).reset_index(drop=True)
-    
+
+    # This will make sure that the sampled data has roughly the same proportion of ratings for each score as the original data
+    ratingdf_sample = ratingdf.groupby("rating", group_keys=False).apply(lambda x: x.sample(int(np.rint(size*len(x)/len(ratingdf))))).sample(frac=1).reset_index(drop=True)
+
+    # Create a new 'Reader' object with the rating scale set to a range between 1 and 10
     reader = Reader(rating_scale=(1,10))
-    data_sample = Dataset.load_from_df(rating_sample[['user_id', 'anime_id', 'rating']], reader)
+
+    # Load the sampled data into a 'Dataset' object using the 'load_from_df' method and the 'reader' object
+    data = Dataset.load_from_df(ratingdf_sample[['user_id', 'anime_id', 'rating']], reader)
 
     # Saving the table to pickle
-    joblib.dump(data_sample,processed_data + "/" + "data_reader_sample.pkl")
+    joblib.dump(data,processed_data + "/" + "data_reader_sample.pkl")
 
-    return data_sample
+    return data
