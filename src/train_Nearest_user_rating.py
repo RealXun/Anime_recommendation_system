@@ -44,19 +44,16 @@ and saves the model to a file using the pickle module. This process
 is an unsupervised learning technique for recommendation systems, 
 where the goal is to identify similar items or users based on their ratings.
 '''
-def matrix_creation_and_training(df_pivot):
-    # Convert pivot table of user-item ratings to a sparse matrix in CSR format
-    matrix = csr_matrix(df_pivot.values)
 
-    # Create k-Nearest Neighbors model with 2 neighbors, Euclidean distance metric, brute force algorithm, and p-norm=2
-    model_knn = NearestNeighbors(n_neighbors=2, metric='euclidean', algorithm='brute', p=2)
+# Convert pivot table of user-item ratings to a sparse matrix in CSR format
+matrix = csr_matrix(df_pivot.values)
 
-    # Fit k-Nearest Neighbors model on the user-item rating matrix
-    model_knn = model_knn.fit(matrix)
+# Create k-Nearest Neighbors model with 2 neighbors, Euclidean distance metric, brute force algorithm, and p-norm=2
+model_knn = NearestNeighbors(n_neighbors=2, metric='euclidean', algorithm='brute', p=2)
 
-    # Save the trained k-Nearest Neighbors model to a file using the pickle module
-    with open(saved_models_folder + "/" + "nearest_user_base_new_model.pkl", "wb") as f:
-        pickle.dump(model_knn, f)
+# Fit k-Nearest Neighbors model on the user-item rating matrix
+model_knn = model_knn.fit(matrix)
 
-    # Return the trained k-Nearest Neighbors model
-    return model_knn
+# Save the trained k-Nearest Neighbors model to a file using the pickle module
+with open(saved_models_folder + "/" + "nearest_user_base_new_model.pkl", "wb") as f:
+    pickle.dump(model_knn, f)

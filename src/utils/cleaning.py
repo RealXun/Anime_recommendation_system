@@ -102,6 +102,12 @@ and saving the cleaned dataframe to a CSV file. The cleaned dataframe is also re
 
 '''
 def clean_anime_df(anime):
+    '''The function clean_anime_df() takes an anime dataframe as input and performs several 
+    cleaning and preprocessing steps, such as removing special characters from anime names, 
+    converting all names to lowercase, filling missing values for "episodes" and "score" 
+    columns with their median, dropping rows with null values for "genre" or "type" columns, 
+    and saving the cleaned dataframe to a CSV file. The cleaned dataframe is also returned as output.'''
+
     anime_cleaned = anime
 
     anime_cleaned['name'] = anime_cleaned['name'].str.replace('\W', ' ', regex=True)
