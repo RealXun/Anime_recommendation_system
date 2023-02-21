@@ -5,6 +5,8 @@ import sys # to manipulate different parts of the Python runtime environment
 import warnings # is used to display the message Warning
 import pickle # serializing and deserializing a Python object structure.
 from zipfile import ZipFile
+import pandas as pd
+
 
 # Third party libraries
 from fastparquet import write # parquet format, aiming integrate into python-based big data work-flows
@@ -13,6 +15,9 @@ from fuzzywuzzy import fuzz # used for string matching
 import numpy as np # functions for working in domain of linear algebra, fourier transform, matrices and arrays
 import pandas as pd # data analysis and manipulation tool
 import joblib # set of tools to provide lightweight pipelining in Python
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
 
 from surprise import Dataset, Reader, accuracy
 from surprise.model_selection import GridSearchCV, train_test_split, cross_validate
@@ -93,6 +98,53 @@ def final_df():
     return anime_final
 
 
+
+'''
+The function takes a pandas dataframe containing anime data and 
+fills in missing values in the 'source' column using a Decision 
+Tree Classifier based on the 'episodes' and 'type' columns. The 
+'type' column is converted to categorical data using get_dummies 
+before fitting the model. The function returns the original 
+dataframe with missing values filled in and the model accuracy score.
+'''
+
+def predict_source(anime_cleaned):
+    # change unknown values to NaN
+    anime_cleaned['source'].replace('Unknown', pd.NA, inplace=True)
+
+    # fill missing values in the 'episodes' column with 0
+    anime_cleaned['episodes'].fillna(0, inplace=True)
+
+    # create dummy variables for the 'type' column
+    anime_cleaned = pd.get_dummies(anime_cleaned, columns=['type'])
+
+    # split the data into training and validation sets
+    train_data = anime_cleaned[anime_cleaned['source'].notna()]
+    validation_data = anime_cleaned[anime_cleaned['source'].isna()]
+
+    # create the decision tree classifier
+    model = DecisionTreeClassifier()
+
+    # train the model using the training data
+    model.fit(train_data[['episodes', 'type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV']],
+              train_data['source'])
+
+    # predict the 'source' values for the validation data
+    predicted_sources = model.predict(validation_data[['episodes', 'type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV']])
+
+    # fill the 'NaN' 'source' values in the original DataFrame with the predicted values
+    anime_cleaned.loc[anime_cleaned['source'].isna(), 'source'] = predicted_sources
+
+    # undo the get_dummies() operation to convert the one-hot encoded 'type' columns back to a single categorical column
+    anime_cleaned['type'] = anime_cleaned[['type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV']].idxmax(axis=1).str.replace('type_', '')
+    anime_cleaned.drop(columns=['type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV'], inplace=True)
+    # calculate the accuracy of the model
+    accuracy = accuracy_score(train_data['source'], model.predict(train_data[['episodes', 'type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV']]))
+
+    return anime_cleaned
+
+
+
 '''
 The function clean_anime_df() takes an anime dataframe as input and performs several 
 cleaning and preprocessing steps, such as removing special characters from anime names, 
@@ -112,22 +164,28 @@ def clean_anime_df(anime):
 
     anime_cleaned['name'] = anime_cleaned['name'].str.replace('\W', ' ', regex=True)
     
-    # Cambiamos a minúsculas todos los nombre de animes
     anime_cleaned['name'] = anime_cleaned['name'].str.lower()
 
     anime_cleaned["episodes"] = anime_cleaned["episodes"].map(lambda x:np.nan if x=="Unknown" else x)
+
     anime_cleaned["episodes"].fillna(anime_cleaned["episodes"].median(),inplace = True)
+
     anime_cleaned["score"] = anime_cleaned["score"].astype(float)
+
     anime_cleaned["score"].fillna(anime_cleaned["score"].median(),inplace = True)
+
     anime_cleaned["members"] = anime_cleaned["members"].astype(float)
 
-    anime_to_compare = anime_cleaned
-    #joblib.dump(anime_to_compare,processed_data + "/" + "_anime_to_compare_with_name.pkl")
     anime_cleaned.to_csv(processed_data + "/" + "_anime_to_compare_with_name.csv", index=False)
-    # Droping null values
-    anime_cleaned = anime_cleaned[anime_cleaned["genre"].notna() & anime_cleaned["type"].notna()]
-    #joblib.dump(anime_cleaned,processed_data + "/" + "anime_cleaned.pkl")
+
+    anime_cleaned['genre'] = anime_cleaned['genre'].fillna(anime_cleaned['genre'].mode()[0])
+
+    anime_cleaned['type'] = anime_cleaned['type'].fillna(anime_cleaned['type'].mode()[0])
+
+    anime_cleaned = predict_source(anime_cleaned)
+
     anime_cleaned.to_csv(processed_data + "/" + "anime_cleaned.csv", index=False)
+    
     return anime_cleaned
 
 ############################################################
@@ -170,12 +228,8 @@ def prepare_supervised_content_based(anime_cleaned):
     # Add the type dummies
     type_dummies = pd.get_dummies(anime_cleaned["type"], prefix="", prefix_sep="")
 
-    # Add the type dummies
-    type_dummies = pd.get_dummies(anime_cleaned["type"], prefix="", prefix_sep="")
-
     anime_cleaned = pd.concat([anime_cleaned, type_dummies], axis=1)
-    anime_cleaned = anime_cleaned.drop(columns=["name", "type", "genre","anime_id","english_title","japanses_title","source","duration",\
-        "episodes","rating","score","rank","members","synopsis","cover"])
+    anime_cleaned = anime_cleaned.drop(columns=["name", "type", "genre","anime_id","english_title","japanses_title","source","duration","rating","rank","synopsis","cover"])
     
     anime_features = anime_cleaned
     anime_features.reset_index(drop=True)
