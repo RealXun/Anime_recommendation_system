@@ -10,6 +10,10 @@ from PIL import Image
 import requests
 from io import BytesIO
 import glob
+import nbformat
+from nbconvert import HTMLExporter
+import io
+import codecs
 
 PROJECT_ROOT = os.path.abspath(os.path.join(
                   os.path.dirname(__file__), 
@@ -31,15 +35,37 @@ def it_is_about():
     #Add the cover image for the cover page. Used a little trick to center the image
              # To display the header text using css style
 
-    #st.image("https://static.streamlit.io/examples/dice.jpg")
+    st.title('**Anime Recommendation systems based on Data from MyAnimeList**')
     st.markdown(""" <style> .font {
-        font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
+        font-size:40px ; font-family: 'Cooper Black'; color: #FF9633;} 
         </style> """, unsafe_allow_html=True)
-    st.markdown('<p class="font">Anime Recommendation systems based on Data from MyAnimeList</p>', unsafe_allow_html=True)
-<<<<<<< Updated upstream
-=======
     st.write("The goal of this project is that according to the user's anime viewing history we can recommend a list of anime that suits their tastes.\nIn order to do this we are going to create 3 types or recommendation system")
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
+
+
+    st.markdown(""" <style> .font {
+        font-size:20px ; font-family: 'Cooper Black'; color: #FF9633;} 
+        </style> """, unsafe_allow_html=True)
+    st.markdown('<p class="font">Unsupervised Collaborative Filtering based on ratings Using k-Nearest Neighbors (kNN)</p>', unsafe_allow_html=True)
+    with st.expander("See explanation and process."):
+        st.write("The chart above shows some numbers I picked for you. I rolled actual dice for these, so they're *guaranteed* to be random.")
+    
+
+
+    st.markdown(""" <style> .font {
+        font-size:20px ; font-family: 'Cooper Black'; color: #FF9633;} 
+        </style> """, unsafe_allow_html=True)
+    st.markdown('<p class="font">Unsupervised content based recommendation system</p>', unsafe_allow_html=True)
+    with st.expander("See explanation and process."):
+        st.write("The chart above shows some numbers I picked for you. I rolled actual dice for these, so they're *guaranteed* to be random.")
+        with open(body_folder + "/" + "un_based_feat.markdown",'r', encoding='utf-8') as f:
+            st.markdown(f.read(), unsafe_allow_html=True)
+
+
+
+    st.markdown(""" <style> .font {
+        font-size:20px ; font-family: 'Cooper Black'; color: #FF9633;} 
+        </style> """, unsafe_allow_html=True)
+    st.markdown('<p class="font">Supervised Collaborative Filtering based on ratings Using SVD method</p>', unsafe_allow_html=True)
+    with st.expander("See explanation and process."):
+        st.write("The chart above shows some numbers I picked for you. I rolled actual dice for thesle, so they're *guaranteed* to be random.")

@@ -65,6 +65,28 @@ def rating():
     return rating
 
 
+def names_unique():
+    '''
+    Return a list of unique names in the column 'english_title'
+    '''
+    anime = pd.read_csv(raw_data + "/" + "anime.csv")
+    names = anime['english_title'].unique().tolist()
+    return names
+
+
+def all_anime_dict():
+    '''
+    The code creates a dictionary from a Pandas DataFrame called "anime", 
+    where the keys of the dictionary are the column names of the DataFrame 
+    and the values of the dictionary are the corresponding 
+    Pandas Series (i.e., column) of the DataFrame.
+    '''
+    anime_dict = anime().to_dict('records')
+    return anime_dict
+
+
+
+
 '''
 Function to return the anime name that mtches de index number
 '''

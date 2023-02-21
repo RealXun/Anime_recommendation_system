@@ -1,34 +1,19 @@
 # Standard library imports
 import os # allows access to OS-dependent functionalities
 import re #  regular expression matching operations similar to those found in Perl
-import sys # to manipulate different parts of the Python runtime environment
-import warnings # is used to display the message Warning
-import pickle # serializing and deserializing a Python object structure.
-from zipfile import ZipFile
-import pandas as pd
-
-
-# Third party libraries
-from fastparquet import write # parquet format, aiming integrate into python-based big data work-flows
-from fuzzywuzzy import fuzz # used for string matching
+import pandas as pd # data analysis and manipulation tool
 
 import numpy as np # functions for working in domain of linear algebra, fourier transform, matrices and arrays
-import pandas as pd # data analysis and manipulation tool
 import joblib # set of tools to provide lightweight pipelining in Python
 
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier # Import the DecisionTreeClassifier class from sklearn.tree
+from sklearn.metrics import accuracy_score # Import the accuracy_score function from sklearn.metrics
 
-from surprise import Dataset, Reader, accuracy
-from surprise.model_selection import GridSearchCV, train_test_split, cross_validate
-from surprise import SVD, SVDpp, SlopeOne, NMF, NormalPredictor, KNNBaseline, KNNBasic, KNNWithMeans, KNNWithZScore, BaselineOnly, CoClustering
-
+from surprise import Dataset, Reader
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
-#Preparing folder variables
-#os.chdir(os.path.dirname(sys.path[0])) # This command makes the notebook the main path and can work in cascade.
-from pathlib import Path
+
 PROJECT_ROOT = os.path.abspath(os.path.join(
                   os.path.dirname(__file__), 
                   os.pardir)
@@ -48,30 +33,33 @@ content_based_supervised_data = (data_folder + "/" + "processed" + "/" + "conten
 ############################################################
 ############################################################
 
-'''
-This function reads a CSV file called "anime.csv" from a 
-directory called raw_data and returns the contents as a Pandas DataFrame.
-'''
+
 def anime():
+    '''
+    This function reads a CSV file called "anime.csv" from a 
+    directory called raw_data and returns the contents as a Pandas DataFrame.
+    '''
     anime = pd.read_csv(raw_data + "/" + "anime.csv")
     return anime
 
 
-'''
-This function reads a CSV file called "rating.csv" from a 
-directory called raw_data and returns the contents as a Pandas DataFrame.
-'''
+
 def rating():
+    '''
+    This function reads a CSV file called "rating.csv" from a 
+    directory called raw_data and returns the contents as a Pandas DataFrame.
+    '''
     rating = pd.read_csv(raw_data + "/" + "rating.csv.zip")
     return rating
 
-'''
-This function merges the two dataframes of anime data, reorders and selects columns, 
-renames the columns to lowercase, and saves the resulting dataframe to a CSV file. 
-The merged and cleaned dataframe is returned as the output.
-In other words, we get more information like to get more information like cover or japanese tittle
-'''
+
 def final_df():
+    '''
+    This function merges the two dataframes of anime data, reorders and selects columns, 
+    renames the columns to lowercase, and saves the resulting dataframe to a CSV file. 
+    The merged and cleaned dataframe is returned as the output.
+    In other words, we get more information like to get more information like cover or japanese tittle
+    '''
     # Load the original anime dataframe
     anime_no_cleaned = pd.read_csv(raw_data + "/" + "anime.csv")
     
@@ -99,16 +87,43 @@ def final_df():
 
 
 
-'''
-The function takes a pandas dataframe containing anime data and 
-fills in missing values in the 'source' column using a Decision 
-Tree Classifier based on the 'episodes' and 'type' columns. The 
-'type' column is converted to categorical data using get_dummies 
-before fitting the model. The function returns the original 
-dataframe with missing values filled in and the model accuracy score.
-'''
+def clean_synopsis(synopsis):
+    '''
+    This code uses regular expressions to clean up the text in the "synopsis" column
+    of a pandas DataFrame. It removes any text in square brackets, removes any c
+    arriage returns or newline characters, and removes any extra whitespace at 
+    the beginning or end of the string.
+    '''
+    if pd.notnull(synopsis):
+        # Remove [Written by MAL Rewrite] from synopsis
+        synopsis = re.sub(r'\[.*?\]', '', synopsis)
+
+        # Remove \r and \n from synopsis
+        synopsis = re.sub(r'[\r\n]+', ' ', synopsis)
+
+        # Remove extra spaces from synopsis
+        synopsis = re.sub(r'\s+', ' ', synopsis).strip()
+
+        # Replace encoded characters
+        synopsis = synopsis.replace('\\\'', '\'')
+        synopsis = synopsis.replace('\\"', '\"')
+
+        return synopsis
+    else:
+        return synopsis
+
+
 
 def predict_source(anime_cleaned):
+    '''
+    The function takes a pandas dataframe containing anime data and 
+    fills in missing values in the 'source' column using a Decision 
+    Tree Classifier based on the 'episodes' and 'type' columns. The 
+    'type' column is converted to categorical data using get_dummies 
+    before fitting the model. The function returns the original 
+    dataframe with missing values filled in and the model accuracy score.
+    '''
+
     # change unknown values to NaN
     anime_cleaned['source'].replace('Unknown', pd.NA, inplace=True)
 
@@ -118,6 +133,28 @@ def predict_source(anime_cleaned):
     # create dummy variables for the 'type' column
     anime_cleaned = pd.get_dummies(anime_cleaned, columns=['type'])
 
+    # create dummy variables for the 'rating' column
+    anime_cleaned = pd.get_dummies(anime_cleaned, columns=['rating'])
+
+    # First, split the genre column by comma and expand the list so there is
+    # a column for each genre. Now we have 13 columns, because the anime with
+    # most genres tags has 13 tags
+    genres = anime_cleaned.genre.str.split(", ", expand=True)
+
+    # Now we can get the list of unique genres. We "convert" the dataframe into
+    # a single dimension array and take the unique values
+    unique_genres = pd.Series(genres.values.ravel('K')).dropna().unique()
+
+    # Getting the dummy variables will result in having a lot more columns
+    # than unique genres
+    dummies = pd.get_dummies(genres)
+
+    # So we sum up the columns with the same genre to have a single column for
+    # each genre
+    for genre in unique_genres:
+        anime_cleaned[genre] = dummies.loc[:, dummies.columns.str.endswith(genre)].sum(axis=1)
+
+
     # split the data into training and validation sets
     train_data = anime_cleaned[anime_cleaned['source'].notna()]
     validation_data = anime_cleaned[anime_cleaned['source'].isna()]
@@ -126,33 +163,62 @@ def predict_source(anime_cleaned):
     model = DecisionTreeClassifier()
 
     # train the model using the training data
-    model.fit(train_data[['episodes', 'type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV']],
+    model.fit(train_data[['episodes', 'type_Movie', 'type_Music', 'type_ONA',\
+         'type_OVA', 'type_Special', 'type_TV','Action', 'Adventure', 'Comedy', 'Drama', 'Dementia', 'Mecha',\
+            'Historical', 'School', 'Hentai', 'Horror', 'Demons', 'Ecchi','Fantasy', 'Shounen', 'Game', 'Mystery',\
+                 'Cars', 'Magic','Romance', 'Sci-Fi', 'Harem', 'Kids', 'Shoujo', 'Military','Super Power', 'Martial Arts',\
+                     'Music', 'Slice of Life', 'Sports','Supernatural', 'Parody', 'Vampire', 'Psychological', 'Samurai',\
+                        'Yaoi', 'Seinen', 'Josei', 'Thriller', 'Space', 'Shounen Ai','Police', 'Yuri', 'Shoujo Ai',\
+                            "rating_G - All Ages", "rating_PG - Children", "rating_PG-13 - Teens 13 or older", \
+                                "rating_R - 17+ (violence & profanity)", "rating_R+ - Mild Nudity", "rating_Rx - Hentai"]],
               train_data['source'])
 
     # predict the 'source' values for the validation data
-    predicted_sources = model.predict(validation_data[['episodes', 'type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV']])
+    predicted_sources = model.predict(validation_data[['episodes', 'type_Movie', 'type_Music', 'type_ONA',\
+         'type_OVA', 'type_Special', 'type_TV','Action', 'Adventure', 'Comedy', 'Drama', 'Dementia', 'Mecha',\
+            'Historical', 'School', 'Hentai', 'Horror', 'Demons', 'Ecchi','Fantasy', 'Shounen', 'Game', 'Mystery',\
+                 'Cars', 'Magic','Romance', 'Sci-Fi', 'Harem', 'Kids', 'Shoujo', 'Military','Super Power', 'Martial Arts',\
+                     'Music', 'Slice of Life', 'Sports','Supernatural', 'Parody', 'Vampire', 'Psychological', 'Samurai',\
+                        'Yaoi', 'Seinen', 'Josei', 'Thriller', 'Space', 'Shounen Ai','Police', 'Yuri', 'Shoujo Ai',\
+                            "rating_G - All Ages", "rating_PG - Children", "rating_PG-13 - Teens 13 or older", \
+                                "rating_R - 17+ (violence & profanity)", "rating_R+ - Mild Nudity", "rating_Rx - Hentai"]])
 
     # fill the 'NaN' 'source' values in the original DataFrame with the predicted values
     anime_cleaned.loc[anime_cleaned['source'].isna(), 'source'] = predicted_sources
 
-    # undo the get_dummies() operation to convert the one-hot encoded 'type' columns back to a single categorical column
+    # undo the get_dummies() operation to convert the one-hot encoded 'type' and 'rating' columns back to a single categorical column
     anime_cleaned['type'] = anime_cleaned[['type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV']].idxmax(axis=1).str.replace('type_', '')
-    anime_cleaned.drop(columns=['type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV'], inplace=True)
-    # calculate the accuracy of the model
-    accuracy = accuracy_score(train_data['source'], model.predict(train_data[['episodes', 'type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV']]))
+    anime_cleaned['rating'] = anime_cleaned[["rating_G - All Ages", "rating_PG - Children", "rating_PG-13 - Teens 13 or older"\
+        , "rating_R - 17+ (violence & profanity)", "rating_R+ - Mild Nudity", "rating_Rx - Hentai"]].idxmax(axis=1).str.replace('rating_', '')
 
+    # Dropping unnecessary columns
+    anime_cleaned.drop(columns=["rating_G - All Ages", "rating_PG - Children", "rating_PG-13 - Teens 13 or older"\
+        , "rating_R - 17+ (violence & profanity)", "rating_R+ - Mild Nudity", "rating_Rx - Hentai"], inplace=True)
+    anime_cleaned.drop(columns=['Action', 'Adventure', 'Comedy', 'Drama', 'Dementia', 'Mecha',
+       'Historical', 'School', 'Hentai', 'Horror', 'Demons', 'Ecchi',
+       'Fantasy', 'Shounen', 'Game', 'Mystery', 'Cars', 'Magic',
+       'Romance', 'Sci-Fi', 'Harem', 'Kids', 'Shoujo', 'Military',
+       'Super Power', 'Martial Arts', 'Music', 'Slice of Life', 'Sports',
+       'Supernatural', 'Parody', 'Vampire', 'Psychological', 'Samurai',
+       'Yaoi', 'Seinen', 'Josei', 'Thriller', 'Space', 'Shounen Ai',
+       'Police', 'Yuri', 'Shoujo Ai'], inplace=True)
+    anime_cleaned.drop(columns=['type_Movie', 'type_Music', 'type_ONA', 'type_OVA', 'type_Special', 'type_TV'], inplace=True)
+
+    # calculate the accuracy of the model
+    accuracy = accuracy_score(train_data['source'], model.predict(train_data[['episodes', 'type_Movie', 'type_Music', 'type_ONA',\
+         'type_OVA', 'type_Special', 'type_TV','Action', 'Adventure', 'Comedy', 'Drama', 'Dementia', 'Mecha',\
+            'Historical', 'School', 'Hentai', 'Horror', 'Demons', 'Ecchi','Fantasy', 'Shounen', 'Game', 'Mystery',\
+                 'Cars', 'Magic','Romance', 'Sci-Fi', 'Harem', 'Kids', 'Shoujo', 'Military','Super Power', 'Martial Arts',\
+                     'Music', 'Slice of Life', 'Sports','Supernatural', 'Parody', 'Vampire', 'Psychological', 'Samurai',\
+                        'Yaoi', 'Seinen', 'Josei', 'Thriller', 'Space', 'Shounen Ai','Police', 'Yuri', 'Shoujo Ai',\
+                            "rating_G - All Ages", "rating_PG - Children", "rating_PG-13 - Teens 13 or older", \
+                                "rating_R - 17+ (violence & profanity)", "rating_R+ - Mild Nudity", "rating_Rx - Hentai"]]))
+    print("The accuracy of source prediction is",accuracy)
     return anime_cleaned
 
 
 
-'''
-The function clean_anime_df() takes an anime dataframe as input and performs several 
-cleaning and preprocessing steps, such as removing special characters from anime names, 
-converting all names to lowercase, filling missing values for "episodes" and "score" 
-columns with their median, dropping rows with null values for "genre" or "type" columns, 
-and saving the cleaned dataframe to a CSV file. The cleaned dataframe is also returned as output.
 
-'''
 def clean_anime_df(anime):
     '''The function clean_anime_df() takes an anime dataframe as input and performs several 
     cleaning and preprocessing steps, such as removing special characters from anime names, 
@@ -160,33 +226,55 @@ def clean_anime_df(anime):
     columns with their median, dropping rows with null values for "genre" or "type" columns, 
     and saving the cleaned dataframe to a CSV file. The cleaned dataframe is also returned as output.'''
 
-    anime_cleaned = anime
+    # Create a copy of the original dataframe called anime_cleaned
+    anime_cleaned = anime  
 
-    anime_cleaned['name'] = anime_cleaned['name'].str.replace('\W', ' ', regex=True)
-    
-    anime_cleaned['name'] = anime_cleaned['name'].str.lower()
+    # Remove all non-word characters from the name column and replace them with spaces
+    anime_cleaned['name'] = anime_cleaned['name'].str.replace('\W', ' ', regex=True)  
 
-    anime_cleaned["episodes"] = anime_cleaned["episodes"].map(lambda x:np.nan if x=="Unknown" else x)
+    # Convert all names to lowercase
+    anime_cleaned['name'] = anime_cleaned['name'].str.lower()  
 
-    anime_cleaned["episodes"].fillna(anime_cleaned["episodes"].median(),inplace = True)
+    # Replace all "Unknown" values in the episodes column with NaN
+    anime_cleaned["episodes"] = anime_cleaned["episodes"].map(lambda x:np.nan if x=="Unknown" else x)  
 
-    anime_cleaned["score"] = anime_cleaned["score"].astype(float)
+    # Replace all NaN values in the episodes column with the median of the column
+    anime_cleaned["episodes"].fillna(anime_cleaned["episodes"].median(),inplace = True)  
 
-    anime_cleaned["score"].fillna(anime_cleaned["score"].median(),inplace = True)
+    # Convert the score column to float type
+    anime_cleaned["score"] = anime_cleaned["score"].astype(float)  
 
-    anime_cleaned["members"] = anime_cleaned["members"].astype(float)
+    # Replace all NaN values in the score column with the median of the column
+    anime_cleaned["score"].fillna(anime_cleaned["score"].median(),inplace = True) 
 
-    anime_cleaned.to_csv(processed_data + "/" + "_anime_to_compare_with_name.csv", index=False)
+    # Convert the members column to float type
+    anime_cleaned["members"] = anime_cleaned["members"].astype(float)  
 
-    anime_cleaned['genre'] = anime_cleaned['genre'].fillna(anime_cleaned['genre'].mode()[0])
 
-    anime_cleaned['type'] = anime_cleaned['type'].fillna(anime_cleaned['type'].mode()[0])
+    # Apply the clean_synopsis function to the synopsis column
+    anime_cleaned['synopsis'] = anime_cleaned['synopsis'].apply(clean_synopsis)
 
-    anime_cleaned = predict_source(anime_cleaned)
+    # Add a source column to the dataframe using the predict_source function
+    anime_cleaned = predict_source(anime_cleaned)  
 
-    anime_cleaned.to_csv(processed_data + "/" + "anime_cleaned.csv", index=False)
-    
-    return anime_cleaned
+    # Replace all NaN values in the genre column with the mode of the column
+    anime_cleaned['genre'] = anime_cleaned['genre'].fillna(anime_cleaned['genre'].mode()[0])  
+
+    # Replace all NaN values in the rating column with the mode of the column
+    anime_cleaned['rating'] = anime_cleaned['rating'].fillna(anime_cleaned['rating'].mode()[0])  
+
+    # Replace all NaN values in the type column with the mode of the column
+    anime_cleaned['type'] = anime_cleaned['type'].fillna(anime_cleaned['type'].mode()[0])  
+
+    # Save the cleaned dataframe to a CSV file called "_anime_to_compare_with_name.csv"
+    anime_cleaned.to_csv(processed_data + "/" + "_anime_to_compare_with_name.csv", index=False)  
+
+    # Save the cleaned dataframe to a CSV file called "anime_cleaned.csv"
+    anime_cleaned.to_csv(processed_data + "/" + "anime_cleaned.csv", index=False)  
+
+
+    return anime_cleaned  # Return the cleaned dataframe
+
 
 ############################################################
 ############################################################
@@ -197,15 +285,16 @@ def clean_anime_df(anime):
 ############################################################
 
 
-'''
-This function prepares the content-based features for a supervised 
-learning model. It first splits the genres into separate columns and 
-gets unique genres. It then creates dummy variables for genres and 
-type, and sum up the columns for the same genre to have a single 
-column for each genre. Finally, it drops irrelevant columns and saves 
-the resulting dataframe to a CSV file. The function returns the resulting dataframe.
-'''
+
 def prepare_supervised_content_based(anime_cleaned):
+    '''
+    This function prepares the content-based features for a supervised 
+    learning model. It first splits the genres into separate columns and 
+    gets unique genres. It then creates dummy variables for genres and 
+    type, and sum up the columns for the same genre to have a single 
+    column for each genre. Finally, it drops irrelevant columns and saves 
+    the resulting dataframe to a CSV file. The function returns the resulting dataframe.
+    '''
 
     # First, split the genre column by comma and expand the list so there is
     # a column for each genre. Now we have 13 columns, because the anime with
@@ -248,12 +337,13 @@ def prepare_supervised_content_based(anime_cleaned):
 #############################################################
 
 
-'''
-This function merges the given DataFrame with a rating DataFrame 
-based on the anime_id column. It then renames the 'rating_user' 
-column to 'user_rating' and returns the merged DataFrame.
-'''
+
 def merging(df):
+    '''
+    This function merges the given DataFrame with a rating DataFrame 
+    based on the anime_id column. It then renames the 'rating_user' 
+    column to 'user_rating' and returns the merged DataFrame.
+    '''
     ratingdf = rating()
     # Añadimos suffixes for ratingdf ya que en los dos df la columna rating tiene el mismo nombre
     merged_df=pd.merge(df,ratingdf,on='anime_id',suffixes= ['', '_user']) 
@@ -264,13 +354,14 @@ def merging(df):
     return merged_df
 
 
-'''
-This function takes in a merged dataframe, preprocesses the data to drop users 
-who have not given any ratings and users who have given fewer ratings than a 
-specified threshold value, and saves the resulting pivot table to a pickle file. 
-It then compresses the pickle file into a zip file and returns the resulting pivot table.
-'''
+
 def features_user_based_unsupervised(df_merged):
+    '''
+    This function takes in a merged dataframe, preprocesses the data to drop users 
+    who have not given any ratings and users who have given fewer ratings than a 
+    specified threshold value, and saves the resulting pivot table to a pickle file. 
+    It then compresses the pickle file into a zip file and returns the resulting pivot table.
+    '''
     # A user who hasn't given any ratings (-1) has added no value to the engine. So let's drop it.
     features=df_merged.copy()
     features["user_rating"].replace({-1: np.nan}, inplace=True)
@@ -299,13 +390,14 @@ def features_user_based_unsupervised(df_merged):
 
 
 
-'''
-The function create_pivot_table_unsupervised creates a pivot table with rows as anime titles, 
-columns as user IDs, and the corresponding ratings as values. The pivot table is then saved 
-to a pickle file and zipped. The function also saves a separate file containing only the 
-anime titles. Finally, the pivot table is returned.
-'''
+
 def create_pivot_table_unsupervised(df_features):
+    '''
+    The function create_pivot_table_unsupervised creates a pivot table with rows as anime titles, 
+    columns as user IDs, and the corresponding ratings as values. The pivot table is then saved 
+    to a pickle file and zipped. The function also saves a separate file containing only the 
+    anime titles. Finally, the pivot table is returned.
+    '''
     # This pivot table consists of rows as title and columns as user id, this will help us to create sparse matrix which can be very helpful in finding the cosine similarity
     pivot_df=df_features.pivot_table(index='name',columns='user_id',values='user_rating').fillna(0)
 
@@ -338,14 +430,15 @@ def create_pivot_table_unsupervised(df_features):
 #                                                            #
 ##############################################################
 ##############################################################
-'''
-This function takes a pandas DataFrame named "rating" and removes all 
-the rows where the "rating" column has a value of 0 or less, and 
-then resets the index of the resulting DataFrame. It returns the 
-cleaned DataFrame.
-'''
-# Cleaning the data
+
+
 def supervised_rating_cleaning(rating):
+    '''
+    This function takes a pandas DataFrame named "rating" and removes all 
+    the rows where the "rating" column has a value of 0 or less, and 
+    then resets the index of the resulting DataFrame. It returns the 
+    cleaned DataFrame.
+    '''
     ratingdf = rating[rating.rating>0]
     ratingdf = ratingdf.reset_index()
     ratingdf.drop('index', axis=1,inplace=True)
@@ -353,13 +446,14 @@ def supervised_rating_cleaning(rating):
 
 
 
-'''
-The code reads two CSV files (anime.csv and rating.csv.zip) and loads them into dataframes. 
-Then it creates a subset of the rating dataframe containing only rows where the rating is 
-greater than 0 and removes the index column. Next, it samples a subset of the data with 
-a specified size, grouped by the rating column.
-'''
+
 def supervised_prepare_training():
+    '''
+    The code reads two CSV files (anime.csv and rating.csv.zip) and loads them into dataframes. 
+    Then it creates a subset of the rating dataframe containing only rows where the rating is 
+    greater than 0 and removes the index column. Next, it samples a subset of the data with 
+    a specified size, grouped by the rating column.
+    '''
     # Load 'anime.csv' file into a pandas DataFrame object called 'anime'
     anime = pd.read_csv(raw_data + "/" + "anime.csv")
 
