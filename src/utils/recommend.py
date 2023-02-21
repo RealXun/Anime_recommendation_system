@@ -65,6 +65,7 @@ def rating():
     return rating
 
 
+
 def names_unique():
     '''
     Return a list of unique names in the column 'english_title'
@@ -72,6 +73,7 @@ def names_unique():
     anime = pd.read_csv(raw_data + "/" + "anime.csv")
     names = anime['english_title'].unique().tolist()
     return names
+
 
 
 def all_anime_dict():
@@ -83,7 +85,6 @@ def all_anime_dict():
     '''
     anime_dict = anime().to_dict('records')
     return anime_dict
-
 
 
 
