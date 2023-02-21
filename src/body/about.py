@@ -48,7 +48,6 @@ def it_is_about():
         </style> """, unsafe_allow_html=True)
     st.markdown('<p class="font">Unsupervised Collaborative Filtering based on ratings Using k-Nearest Neighbors (kNN)</p>', unsafe_allow_html=True)
     with st.expander("See explanation and process."):
-        st.write("The chart above shows some numbers I picked for you. I rolled actual dice for these, so they're *guaranteed* to be random.")
         with open(body_folder + "/" + "un_based_feat.markdown",'r', encoding='utf-8') as f:
             st.markdown(f.read(), unsafe_allow_html=True)    
 
@@ -58,7 +57,6 @@ def it_is_about():
         </style> """, unsafe_allow_html=True)
     st.markdown('<p class="font">Unsupervised content based recommendation system</p>', unsafe_allow_html=True)
     with st.expander("See explanation and process."):
-        st.write("The chart above shows some numbers I picked for you. I rolled actual dice for these, so they're *guaranteed* to be random.")
         path_to_html = body_folder + "/" + "unsupervised_content_based_filtered_filtered.html" 
         # Read file and keep in variable
         with open(path_to_html,'r', encoding='utf-8') as f: 
@@ -72,4 +70,3 @@ def it_is_about():
         </style> """, unsafe_allow_html=True)
     st.markdown('<p class="font">Supervised Collaborative Filtering based on ratings Using SVD method</p>', unsafe_allow_html=True)
     with st.expander("See explanation and process."):
-        st.write("The chart above shows some numbers I picked for you. I rolled actual dice for thesle, so they're *guaranteed* to be random.")
