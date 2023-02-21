@@ -55,19 +55,19 @@ content_based_supervised_data = (data_folder + "/" + "processed" + "/" + "conten
 ############################################################
 ############################################################
 
-'''
-The function param_NearestNeighbors uses GridSearchCV from scikit-learn 
-to perform a grid search over a range of hyperparameters for the 
-NearestNeighbors model. It takes a dataframe df as input and returns 
-the best hyperparameters found during the grid search. The hyperparameters 
-being searched over include n_neighbors, radius, algorithm, leaf_size, 
-metric, and p. The scoring metric being used is "accuracy" and the refit 
-parameter is set to "precision_score". cv=2 sets the number of cross-validation 
-folds to 2, and n_jobs=-1 sets the number of CPU cores used to parallelize 
-the search to be the maximum available.
-'''
 
 def param_NearestNeighbors(df):
+    '''
+    The function param_NearestNeighbors uses GridSearchCV from scikit-learn 
+    to perform a grid search over a range of hyperparameters for the 
+    NearestNeighbors model. It takes a dataframe df as input and returns 
+    the best hyperparameters found during the grid search. The hyperparameters 
+    being searched over include n_neighbors, radius, algorithm, leaf_size, 
+    metric, and p. The scoring metric being used is "accuracy" and the refit 
+    parameter is set to "precision_score". cv=2 sets the number of cross-validation 
+    folds to 2, and n_jobs=-1 sets the number of CPU cores used to parallelize 
+    the search to be the maximum available.
+    '''
     # Define dictionary of hyperparameters to test using GridSearchCV
     parametros = {
         'n_neighbors': range(1, 10),

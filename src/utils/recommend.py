@@ -88,38 +88,42 @@ def all_anime_dict():
 
 
 
-'''
-Function to return the anime name that mtches de index number
-'''
+
 def from_index_to_title(index,df):
+    '''
+    Function to return the anime name that mtches de index number
+    '''
     anime = df
     return anime[anime.index == index]['name'].values[0]
 
 
-'''
-Function to return the matched index number of the anime name
-'''
+
 def from_title_to_index(title,df):
+    '''
+    Function to return the matched index number of the anime name
+    '''
     anime = df
     return anime[anime["name"]==title].index.values[0]
 
 
-'''
-Function to find the closest title, It uses Levenshtein Distance to calculate the differences between sequences
-'''
+
 def match_the_score(a,b):
-   return fuzz.ratio(a,b)
+    '''
+    Function to find the closest title, It uses Levenshtein Distance to calculate the differences between sequences
+    '''
+    return fuzz.ratio(a,b)
 
 
 
-'''
-Function that takes in a string title and a pandas DataFrame df as input arguments, 
-and returns a tuple containing the closest matching title to the input title 
-and the Levenshtein distance score between the closest title and the input title.
-in other words, the function returns the most similar title to the name a user typed
-'''
-# This function takes a string `title` and a pandas DataFrame `df` as input arguments.
+
 def finding_the_closest_title(title,df):
+    '''
+    Function that takes in a string title and a pandas DataFrame df as input arguments, 
+    and returns a tuple containing the closest matching title to the input title 
+    and the Levenshtein distance score between the closest title and the input title.
+    in other words, the function returns the most similar title to the name a user typed
+    '''
+    # This function takes a string `title` and a pandas DataFrame `df` as input arguments.
 
     # Create a new variable `anime` to hold the DataFrame `df` for readability.
     anime = df
@@ -144,14 +148,15 @@ def finding_the_closest_title(title,df):
 
 
 
-'''
-The code defines a function "filtering_or" that filters a pandas dataframe based on user-defined 
-genres and types using an "OR" method. The function allows the user to select one or all possible 
-genres and types and returns a filtered dataframe with the selected genres and types. 
-The function also splits the genre and type columns and explodes them to account for multiple entries.
-'''
+
 def filtering_or(df, genres, types):
-    
+    '''
+    The code defines a function "filtering_or" that filters a pandas dataframe based on user-defined 
+    genres and types using an "OR" method. The function allows the user to select one or all possible 
+    genres and types and returns a filtered dataframe with the selected genres and types. 
+    The function also splits the genre and type columns and explodes them to account for multiple entries.
+    '''
+
     # Make a copy of the input DataFrame
     filtered_df = df.copy()
     
@@ -186,24 +191,25 @@ def filtering_or(df, genres, types):
 
 
 
-'''
-This function takes a DataFrame df, a list of genres, and a list of types as input arguments. 
-The function first creates a boolean mask genre_mask by applying a lambda function to 
-the 'genre' column of the DataFrame. The lambda function checks if the value is a 
-string using isinstance(x, str) and if all genres in the genres list are present 
-in the string, which is split by comma and space using x.split(', '). 
-The all() function returns True if all genres in the genres list are present 
-in the string. The resulting genre_mask will be True for rows where the genre 
-column contains all of the genres in the genres list.
 
-Then the function creates another boolean mask type_mask by using the isin() 
-method to check if each value in the 'type' column of the DataFrame is in the types list.
-
-Finally, the function applies both masks to the DataFrame df using the & operator 
-to create a new DataFrame filtered_df that includes only rows where both m
-asks are True. The function returns the filtered DataFrame.
-'''
 def filtering_and(df, genres, types):
+    '''
+    This function takes a DataFrame df, a list of genres, and a list of types as input arguments. 
+    The function first creates a boolean mask genre_mask by applying a lambda function to 
+    the 'genre' column of the DataFrame. The lambda function checks if the value is a 
+    string using isinstance(x, str) and if all genres in the genres list are present 
+    in the string, which is split by comma and space using x.split(', '). 
+    The all() function returns True if all genres in the genres list are present 
+    in the string. The resulting genre_mask will be True for rows where the genre 
+    column contains all of the genres in the genres list.
+
+    Then the function creates another boolean mask type_mask by using the isin() 
+    method to check if each value in the 'type' column of the DataFrame is in the types list.
+
+    Finally, the function applies both masks to the DataFrame df using the & operator 
+    to create a new DataFrame filtered_df that includes only rows where both m
+    asks are True. The function returns the filtered DataFrame.
+    '''
     # This function takes a DataFrame `df`, a list of `genres`, and a list of `types` as input arguments.
 
     # Create a boolean mask that filters rows where the genre column contains all of the genres in the `genres` list.
@@ -220,25 +226,31 @@ def filtering_and(df, genres, types):
 
 
 
-'''
-The create_dict() function takes in four arguments - names (list of anime names to search for), 
-gen (list of genres to filter by), typ (list of anime types to filter by), 
-method (string indicating whether to filter by "or" or "and"), 
-and an optional n parameter indicating the maximum number of results to return. 
-It reads in a pre-processed anime DataFrame, filters it based on the input criteria, 
-and returns a dictionary of the resulting rows. If there are no matches, 
-it returns a string indicating it.
-'''
-    # This function takes in a list of anime titles `names`, lists of `gen`res and `typ`es, a filtering method `method`, and an optional number of results `n`.
-def create_dict(names, gen, typ, method, n=200):
 
-    #anime = joblib.load(processed_data  + "/" +  "_anime_to_compare_with_name.pkl")
     
-    anime = pd.read_csv(processed_data + "/" + "_anime_to_compare_with_name.csv")# Load the anime dataframe from a CSV file using pandas.
+def create_dict(names, gen, typ, method, n=200):
+    '''
+    The create_dict() function takes in four arguments - names (list of anime names to search for), 
+    gen (list of genres to filter by), typ (list of anime types to filter by), 
+    method (string indicating whether to filter by "or" or "and"), 
+    and an optional n parameter indicating the maximum number of results to return. 
+    It reads in a pre-processed anime DataFrame, filters it based on the input criteria, 
+    and returns a dictionary of the resulting rows. If there are no matches, 
+    it returns a string indicating it.
+    '''
+    # This function takes in a list of anime titles `names`, lists of `gen`res and `typ`es, a filtering method `method`, and an optional number of results `n`.
     
-    final_df = anime[anime['name'].isin(names)]# Filter the anime dataframe to only include titles that match those in the input list `names`.
-    final_df = final_df.drop(columns=["anime_id", "members"])# Remove the 'anime_id' and 'members' columns from the resulting dataframe.
-    blankIndex=[''] * len(final_df)# Reset the index of the resulting dataframe.
+    # Load the anime dataframe from a CSV file using pandas.
+    anime = pd.read_csv(processed_data + "/" + "_anime_to_compare_with_name.csv")
+    
+    # Filter the anime dataframe to only include titles that match those in the input list `names`.
+    final_df = anime[anime['name'].isin(names)]
+
+    # Remove the 'anime_id' and 'members' columns from the resulting dataframe.
+    final_df = final_df.drop(columns=["anime_id", "members"])
+
+    # Reset the index of the resulting dataframe.
+    blankIndex=[''] * len(final_df)
     final_df.index=blankIndex
 
     # Apply a filtering method based on the input `method`.
@@ -271,27 +283,26 @@ def create_dict(names, gen, typ, method, n=200):
 ############################################################
 ############################################################
 
-'''
-This function takes a user input anime name query and returns a list of recommended anime similar to the query.
-It uses a pre-trained model and a dataset of anime information to find recommendations. 
-If the user query has any misspelling, the function tries to find the closest match to 
-the query and provides recommendations based on that.
-'''
+
 def print_similar_animes(query):
-    ind = joblib.load(saved_models_folder + "/" + "kNearest_user_content_new_model.pkl") # Load the trained model
-    #anime = joblib.load(processed_data + "/" + "_anime_to_compare_with_name.pkl")
-    anime = pd.read_csv(processed_data + "/" + "_anime_to_compare_with_name.csv")# load anime df
-    closest_title, distance_score = finding_the_closest_title(query,anime) # find the closest title
+    '''
+    This function takes a user input anime name query and returns a list of recommended anime similar to the query.
+    It uses a pre-trained model and a dataset of anime information to find recommendations. 
+    If the user query has any misspelling, the function tries to find the closest match to 
+    the query and provides recommendations based on that.
+    '''
+    ind = joblib.load(saved_models_folder + "/" + "kNearest_user_content_new_model.pkl")
+    anime = pd.read_csv(processed_data + "/" + "_anime_to_compare_with_name.csv")
+    closest_title, distance_score = finding_the_closest_title(query,anime)
        
-    if distance_score == 100: # When a user does not make misspellings
+    if distance_score == 100:
         names = []
         errors = []
         print('These are the recommendations for similar animes to '+'\033[1m'+str(query)+'\033[0m'+'','\n')
-        found_id = from_title_to_index(query,anime) # return the matched index number of the anime name
-        array = ind[found_id][1:] # return the matched index number of the anime name that user did input
-        indi = np.where(array==found_id) # return the position of the anime index that user did input (if it is in the list)
-        array = np.delete(array, indi) # erase the anime index that matches the anime name that used did input
-        #array = array[0:n] # print the number of anime recommendations that userd chosed
+        found_id = from_title_to_index(query,anime) 
+        array = ind[found_id][1:] 
+        indi = np.where(array==found_id) 
+        array = np.delete(array, indi) 
         for id in array:
             try :
                 names.append(anime[anime.index == id]['name'].values[0])
@@ -304,11 +315,10 @@ def print_similar_animes(query):
         names = []
         errors = []
         print('I guess you misspelled the name\n Are you looking similitudes for the anime named '+'\033[1m'+str(closest_title)+'\033[0m'+'?','\n' + 'Here are the recommendations:')
-        found_id = from_title_to_index(closest_title,anime) # return the matched index number of the anime name that user did input
-        array = ind[found_id][1:] # create and array with anime indexes to recoomend according to the anime 
-        indi = np.where(array==found_id) # return the position of the anime index that user did input (if it is in the list)
-        array = np.delete(array, indi) # erase the anime index that matches the anime name that user did input
-        #array = array[0:n] # print the number of anime recommendations that userd chosed
+        found_id = from_title_to_index(closest_title,anime) 
+        array = ind[found_id][1:] 
+        indi = np.where(array==found_id)
+        array = np.delete(array, indi) 
         for id in array:
             try :
                 names.append(anime[anime.index == id]['name'].values[0])
@@ -327,13 +337,14 @@ def print_similar_animes(query):
 #############################################################
 #############################################################
 
-'''
-This function returns a list of recommended animes based on user-based collaborative filtering. 
-It loads a pre-trained KNN model and a pivot table containing user-anime ratings. 
-It then finds the index of the anime provided by the user and calculates the distances 
-and indices of the most similar animes. Finally, it returns a list of recommended animes. 
-'''
+
 def reco(name, n, df):
+    '''
+    This function returns a list of recommended animes based on user-based collaborative filtering. 
+    It loads a pre-trained KNN model and a pivot table containing user-anime ratings. 
+    It then finds the index of the anime provided by the user and calculates the distances 
+    and indices of the most similar animes. Finally, it returns a list of recommended animes. 
+    '''
     # Load the trained KNN model for user-based unsupervised learning.
     model_knn = joblib.load(saved_models_folder + "/" + "nearest_user_base_new_model.pkl")
 
@@ -364,15 +375,14 @@ def reco(name, n, df):
 
         
 
-'''
-The function unsupervised_user_based_recommender takes a user
-input anime title, and returns recommendations of similar animes
-using unsupervised user-based collaborative filtering. It loads
-necessary data, finds the closest anime title to the user input,
-and calls the reco function to get the recommended anime titles.
-'''
 def unsupervised_user_based_recommender(movie_user_likes,n=200):
-
+    '''
+    The function unsupervised_user_based_recommender takes a user
+    input anime title, and returns recommendations of similar animes
+    using unsupervised user-based collaborative filtering. It loads
+    necessary data, finds the closest anime title to the user input,
+    and calls the reco function to get the recommended anime titles.
+    '''
     #df = joblib.load(processed_data + "/" + "_anime_to_compare_with_name.pkl")    
 
     # Load the anime data with features to compare
@@ -412,13 +422,14 @@ def unsupervised_user_based_recommender(movie_user_likes,n=200):
 ##############################################################
 ##############################################################
 
-'''
-This function takes a dataframe, genre, type, method, and n as input. 
-It filters the dataframe based on the specified genre and type using 
-either "or" or "and" method, selects the top n rows from the filtered 
-dataframe, and returns a dictionary representation of the resulting dataframe.
-'''
+
 def create_dict_su(final_df,gen,typ,method,n=100):
+    '''
+    This function takes a dataframe, genre, type, method, and n as input. 
+    It filters the dataframe based on the specified genre and type using 
+    either "or" or "and" method, selects the top n rows from the filtered 
+    dataframe, and returns a dictionary representation of the resulting dataframe.
+    '''
     # get the final dataframe and the parameters for filtering and number of recommendations to show
     df = final_df
     

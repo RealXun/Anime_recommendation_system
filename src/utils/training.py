@@ -56,14 +56,16 @@ content_based_supervised_data = (data_folder + "/" + "processed" + "/" + "conten
 ############################################################
 ############################################################
 
-'''
-The function model_NearestNeighbors builds and trains a 
-k-Nearest Neighbors model on a given dataset, using specified 
-parameters. It then saves the indices of the nearest neighbors 
-to a file and returns them.
-'''
+
 
 def model_NearestNeighbors(df):
+    '''
+    The function model_NearestNeighbors builds and trains a 
+    k-Nearest Neighbors model on a given dataset, using specified 
+    parameters. It then saves the indices of the nearest neighbors 
+    to a file and returns them.
+    '''
+
     # Build and "train" the model using NearestNeighbors algorithm
     # algorithm: algorithm used to compute the nearest neighbors (‘auto’, ‘ball_tree’, ‘kd_tree’, ‘brute’)
     # leaf_size: leaf size passed to BallTree or KDTree

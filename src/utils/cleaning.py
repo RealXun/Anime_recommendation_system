@@ -95,8 +95,6 @@ def clean_synopsis(synopsis):
     the beginning or end of the string.
     '''
     if pd.notnull(synopsis):
-        # Remove [Written by MAL Rewrite] from synopsis
-        synopsis = re.sub(r'\[.*?\]', '', synopsis)
 
         # Remove \r and \n from synopsis
         synopsis = re.sub(r'[\r\n]+', ' ', synopsis)
@@ -250,7 +248,6 @@ def clean_anime_df(anime):
     # Convert the members column to float type
     anime_cleaned["members"] = anime_cleaned["members"].astype(float)  
 
-
     # Apply the clean_synopsis function to the synopsis column
     anime_cleaned['synopsis'] = anime_cleaned['synopsis'].apply(clean_synopsis)
 
@@ -268,10 +265,6 @@ def clean_anime_df(anime):
 
     # Save the cleaned dataframe to a CSV file called "_anime_to_compare_with_name.csv"
     anime_cleaned.to_csv(processed_data + "/" + "_anime_to_compare_with_name.csv", index=False)  
-
-    # Save the cleaned dataframe to a CSV file called "anime_cleaned.csv"
-    anime_cleaned.to_csv(processed_data + "/" + "anime_cleaned.csv", index=False)  
-
 
     return anime_cleaned  # Return the cleaned dataframe
 
@@ -296,35 +289,44 @@ def prepare_supervised_content_based(anime_cleaned):
     the resulting dataframe to a CSV file. The function returns the resulting dataframe.
     '''
 
-    # First, split the genre column by comma and expand the list so there is
-    # a column for each genre. Now we have 13 columns, because the anime with
-    # most genres tags has 13 tags
+    # Split the "genre" column into multiple columns
     genres = anime_cleaned.genre.str.split(", ", expand=True)
-
-    # Now we can get the list of unique genres. We "convert" the dataframe into
-    # a single dimension array and take the unique values
+    
+    # Get unique genre values
     unique_genres = pd.Series(genres.values.ravel('K')).dropna().unique()
-
-    # Getting the dummy variables will result in having a lot more columns
-    # than unique genres
+    
+    # Create dummy variables for the genre columns
     dummies = pd.get_dummies(genres)
-
-    # So we sum up the columns with the same genre to have a single column for
-    # each genre
+    
+    # For each unique genre, sum up the corresponding dummy variables and add a new column for that genre
     for genre in unique_genres:
         anime_cleaned[genre] = dummies.loc[:, dummies.columns.str.endswith(genre)].sum(axis=1)
-
-    # Add the type dummies
-    type_dummies = pd.get_dummies(anime_cleaned["type"], prefix="", prefix_sep="")
-
-    anime_cleaned = pd.concat([anime_cleaned, type_dummies], axis=1)
-    anime_cleaned = anime_cleaned.drop(columns=["name", "type", "genre","anime_id","english_title","japanses_title","source","duration","rating","rank","synopsis","cover"])
     
+    # Create dummy variables for the "type" column
+    type_dummies = pd.get_dummies(anime_cleaned["type"], prefix="", prefix_sep="")
+    
+    # Create dummy variables for the "rating" column
+    anime_cleaned = pd.get_dummies(anime_cleaned, columns=['rating'], prefix="", prefix_sep="")
+    
+    # Create dummy variables for the "source" column
+    anime_cleaned = pd.get_dummies(anime_cleaned, columns=['source'], prefix="", prefix_sep="")
+    
+    # Concatenate the "type" dummy variables with the existing DataFrame
+    anime_cleaned = pd.concat([anime_cleaned, type_dummies], axis=1)
+    
+    # Drop unnecessary columns
+    anime_cleaned = anime_cleaned.drop(columns=["name", "type", "genre","anime_id","japanses_title","duration","english_title","rank","synopsis","cover"])
+    
+    # Create a new DataFrame that is a copy of the modified DataFrame
     anime_features = anime_cleaned
+    
+    # Reset the index of the new DataFrame
     anime_features.reset_index(drop=True)
-
-    #joblib.dump(anime_features,processed_data + "/" + "anime_features.pkl")
+    
+    # Save the modified DataFrame as a CSV file
     anime_cleaned.to_csv(processed_data + "/" + "anime_features.csv", index=False)
+    
+    # Return the modified DataFrame
     return anime_features
 
 
