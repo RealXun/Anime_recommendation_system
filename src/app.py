@@ -14,7 +14,7 @@ st.set_page_config(layout='wide')
 
 # This opens a sidebar in the Streamlit app.
 with st.sidebar:
-    choose = option_menu("Anime Recommendator System", ["About","What is anime?","Based on ratings", "Based on Features", "Using user ID", "Anime Info","About the Creator"],
+    choose = option_menu("Anime Recommendator System", ["About this project","What is anime?","Based on ratings", "Based on Features", "Using user ID", "Anime Info","About the Creator"],
                          icons=['house','easel', '123', 'list-ul', 'credit-card-2-front', 'tv','person'],
                          menu_icon="app-indicator", default_index=0,
                          styles={"container": {"padding": "5!important", "background-color": "#fafafa"},
@@ -34,7 +34,7 @@ with st.sidebar:
 # Depending on the option selected, it calls a specific function to display the corresponding 
 # content in the main panel of the Streamlit app.
 
-if choose == "About":
+if choose == "About this project":
     about.it_is_about()
 
 elif choose == "What is anime?":

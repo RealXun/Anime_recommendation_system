@@ -6,9 +6,7 @@
 
 [![](https://www.codewars.com/users/RealXun/badges/large)]([https://www.codewars.com/users/_JDev_](https://www.codewars.com/users/RealXun))
 
-<img src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/life_balance.gif" alt="side Image" align="right" width="200" height="auto" />
-
-### <img src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/Developer.gif" width="45" /> About Me:
+### <img src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/Developer.gif" width="45" /> About Me: <img src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/life_balance.gif" alt="side Image" width="200" height="auto" /> 
 - 🔭 As many other people, I am working on improving my life.
 - 🌱 Learning how to be a Data Scientist.
 - 👯 Always looking to collaborate on Data Science and Data Analytics projects.
@@ -16,7 +14,7 @@
 - 💬 Ask me about anything, I am happy to help.
 - :rice_ball:	:ramen: Korean and Japanese food lover (It kinda makes sense after 8 years living in Asia)
 - ☕️ Yeah!!! coffee addicted 😅😅😅
-- <img height="30" src="https://github.com/RealXun/RealXun/blob/main/Resources/RLBadgeLogo_Large.png"> Rocket League!!!
+- <img height="30" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/RLBadgeLogo_Large.png"> Rocket League!!!
 
 #### MOTTO
 
@@ -31,18 +29,19 @@
 
 
 ### 👨🏻‍💻 Languages and Tools:
-  <img height="60" src="https://github.com/RealXun/RealXun/blob/main/Resources/bash.png"> <img height="60" src="https://github.com/RealXun/RealXun/blob/main/Resources/git.png"></code>
-  <img height="60" src="https://github.com/RealXun/RealXun/blob/main/Resources/json.png">
-  <img height="40" src="https://github.com/RealXun/RealXun/blob/main/Resources/jupyter-notebook.png">
-  <img height="40" src="https://github.com/RealXun/RealXun/blob/main/Resources/linux.png">
-  <img height="40" src="https://github.com/RealXun/RealXun/blob/main/Resources/selenium-logo.png">
-  <img height="60" src="https://github.com/RealXun/RealXun/blob/main/Resources/scikit-learn.png">
-  <img height="60" src="https://github.com/RealXun/RealXun/blob/main/Resources/python.png">
-  <img height="40" src="https://github.com/RealXun/RealXun/blob/main/Resources/Rlogo.png">
-  <img height="60" src="https://github.com/RealXun/RealXun/blob/main/Resources/Tableau-Logo.png">
-  <img height="40" src="https://github.com/RealXun/RealXun/blob/main/Resources/png-clipart-microsoft-azure-sql-database-microsoft-sql-server-cloud-computing-blue-text.png">
-  <img height="40" src="https://github.com/RealXun/RealXun/blob/main/Resources/qlik-vector-logo.png">
-  <img height="40" src="https://github.com/RealXun/RealXun/blob/main/Resources/Logo-cuadrado-con-letra-Power-BI.png">
+  <img height="60" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/bash.png"> 
+  <img height="60" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/git.png"></code>
+  <img height="60" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/json.png">
+  <img height="40" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/jupyter-notebook.png">
+  <img height="40" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/linux.png">
+  <img height="40" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/selenium-logo.png">
+  <img height="60" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/scikit-learn.png">
+  <img height="60" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/python.png">
+  <img height="40" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/Rlogo.png">
+  <img height="60" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/Tableau-Logo.png">
+  <img height="40" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/png-clipart-microsoft-azure-sql-database-microsoft-sql-server-cloud-computing-blue-text.png">
+  <img height="40" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/qlik-vector-logo.png">
+  <img height="40" src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/Logo-cuadrado-con-letra-Power-BI.png">
   
 ### 🖥️ My DevSetup
 ![](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
@@ -65,5 +64,5 @@
 ### <img align ='center' src='https://media2.giphy.com/media/UQDSBzfyiBKvgFcSTw/giphy.gif?cid=ecf05e47p3cd513axbek3f56ti3jzizq8hincw20jauyyfyw&rid=giphy.gif' width ='29' /> Here's some humor for you:
 <img src="https://readme-jokes.vercel.app/api" alt="Error fetching resource, Refresh again to view Jokes Card" width = '11000' />
 
-<p align="Center"><img src="https://github.com/RealXun/RealXun/blob/main/Resources/dino_rounded.gif?raw=true" href="https://github.com/RealXun" width="75%"/><br>
+<p align="Center"><img src="https://raw.githubusercontent.com/RealXun/RealXun/main/Resources/dino_rounded.gif?raw=true" href="https://github.com/RealXun" width="75%"/><br>
 </div>
