@@ -291,39 +291,67 @@ def print_similar_animes(query):
     If the user query has any misspelling, the function tries to find the closest match to 
     the query and provides recommendations based on that.
     '''
+    # Load pre-trained k-Nearest Neighbors model from file
     ind = joblib.load(saved_models_folder + "/" + "kNearest_user_content_new_model.pkl")
+    
+    # Load anime data from CSV file
     anime = pd.read_csv(processed_data + "/" + "_anime_to_compare_with_name.csv")
+    
+    # Find the closest title in the anime dataset to the user's query
     closest_title, distance_score = finding_the_closest_title(query,anime)
        
+    # If the distance score is 100, the user's query is an exact match for a title in the dataset
     if distance_score == 100:
         names = []
         errors = []
         print('These are the recommendations for similar animes to '+'\033[1m'+str(query)+'\033[0m'+'','\n')
+        
+        # Get the index of the exact match in the dataset
         found_id = from_title_to_index(query,anime) 
+        
+        # Get the indices of the k-nearest neighbors of the exact match
         array = ind[found_id][1:] 
+        
+        # Remove the index of the exact match from the array of neighbors
         indi = np.where(array==found_id) 
         array = np.delete(array, indi) 
+        
+        # For each neighbor index, get the name of the anime and add it to the list of recommendations
         for id in array:
             try :
                 names.append(anime[anime.index == id]['name'].values[0])
             except IndexError :
                 errors.append(id)
+        
+        # Return the list of recommendations
         return names
 
-   # When a user makes misspellings    
+   # If the distance score is not 100, the user's query is a misspelling or a partial match
     else:
         names = []
         errors = []
+        
+        # Ask the user if they meant the closest title found in the dataset
         print('I guess you misspelled the name\n Are you looking similitudes for the anime named '+'\033[1m'+str(closest_title)+'\033[0m'+'?','\n' + 'Here are the recommendations:')
+        
+        # Get the index of the closest title in the dataset
         found_id = from_title_to_index(closest_title,anime) 
+        
+        # Get the indices of the k-nearest neighbors of the closest title
         array = ind[found_id][1:] 
+        
+        # Remove the index of the closest title from the array of neighbors
         indi = np.where(array==found_id)
         array = np.delete(array, indi) 
+        
+        # For each neighbor index, get the name of the anime and add it to the list of recommendations
         for id in array:
             try :
                 names.append(anime[anime.index == id]['name'].values[0])
             except IndexError :
                 errors.append(id)
+        
+        # Return the list of recommendations
         return names
 
 
