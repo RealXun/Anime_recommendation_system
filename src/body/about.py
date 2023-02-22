@@ -10,8 +10,6 @@ from PIL import Image
 import requests
 from io import BytesIO
 import glob
-import nbformat
-from nbconvert import HTMLExporter
 import io
 import codecs
 
