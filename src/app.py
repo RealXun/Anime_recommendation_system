@@ -7,6 +7,8 @@ from body import about
 from body import about_me
 from body import what_is
 from body import an_info
+from body import explore
+from body import eda
 
 st.set_page_config(layout='wide')
 
@@ -14,8 +16,8 @@ st.set_page_config(layout='wide')
 
 # This opens a sidebar in the Streamlit app.
 with st.sidebar:
-    choose = option_menu("Anime Recommendator System", ["About this project","What is anime?","Based on ratings", "Based on Features", "Using user ID", "Anime Info","About the Creator"],
-                         icons=['house','easel', '123', 'list-ul', 'credit-card-2-front', 'tv','person'],
+    choose = option_menu("Anime Recommendator System", ["About this project","What is anime?","Exploring data","Based on ratings", "Based on Features", "Using user ID","EDA", "Anime Info","About the Creator"],
+                         icons=['house','easel',"clipboard-data", '123', 'list-ul', 'credit-card-2-front',"graph-up", 'tv','person'],
                          menu_icon="app-indicator", default_index=0,
                          styles={"container": {"padding": "5!important", "background-color": "#fafafa"},
                                 "icon": {"color": "orange", "font-size": "25px"}, 
@@ -40,6 +42,9 @@ if choose == "About this project":
 elif choose == "What is anime?":
     what_is.what_is()
 
+elif choose == "Exploring data":
+    explore.explore_data()
+
 elif choose == "Based on ratings":
     un_based_rate.uns_bara()
 
@@ -48,6 +53,9 @@ elif choose == "Based on Features":
 
 elif choose == "Using user ID":
     sup_id.user_id()
+
+elif choose == "EDA":
+    eda.eda_info()
 
 elif choose == "Anime Info":
     an_info.info()
