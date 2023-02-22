@@ -15828,6 +15828,40 @@ Total number of records: 12201
 
 </div>
 
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Steps of print_similar_animes:</p>
+<ul>
+<li>Load pre-trained k-Nearest Neighbors model from file</li>
+<li>Load anime data from CSV file</li>
+<li>Find the closest title in the anime dataset to the user's query</li>
+<li>If the distance score is 100, the user's query is an exact match for a title in the dataset<ul>
+<li>Get the index of the exact match in the dataset</li>
+<li>Get the indices of the k-nearest neighbors of the exact match</li>
+<li>Remove the index of the exact match from the array of neighbors</li>
+<li>For each neighbor index, get the name of the anime and add it to the list of recommendations</li>
+<li>Return the list of recommendations</li>
+</ul>
+</li>
+<li>If the distance score is not 100, the user's query is a misspelling or a partial match<ul>
+<li>Ask the user if they meant the closest title found in the dataset</li>
+<li>Get the index of the closest title in the dataset</li>
+<li>Get the indices of the k-nearest neighbors of the closest title</li>
+<li>Remove the index of the closest title from the array of neighbors</li>
+<li>For each neighbor index, get the name of the anime and add it to the list of recommendations</li>
+<li>Return the list of recommendations</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -16243,7 +16277,7 @@ Total number of records: 12201
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[68]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[69]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># We can get the recommendation as a dictionary</span>
@@ -16253,7 +16287,7 @@ Total number of records: 12201
 <span class="c1"># We must select a type or filtering, &quot;or&quot;/&quot;and&quot; </span>
 <span class="c1"># Then the number of suggestions we have(we might get less if there not so many o none if there is no matches)</span>
 
-<span class="n">create_dict</span><span class="p">(</span><span class="n">print_similar_animes</span><span class="p">(</span><span class="s2">&quot;Naruto&quot;</span><span class="p">),[</span><span class="s2">&quot;Shounen&quot;</span><span class="p">],[</span><span class="s2">&quot;TV&quot;</span><span class="p">],</span><span class="s2">&quot;or&quot;</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">create_dict</span><span class="p">(</span><span class="n">print_similar_animes</span><span class="p">(</span><span class="s2">&quot;Naruto&quot;</span><span class="p">),[</span><span class="s2">&quot;Shounen&quot;</span><span class="p">],[</span><span class="s2">&quot;TV&quot;</span><span class="p">],</span><span class="s2">&quot;or&quot;</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -16282,7 +16316,7 @@ or
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[68]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[69]:</div>
 
 
 
@@ -16313,45 +16347,6 @@ or
   &#39;synopsis&#39;: &#39;Gol D. Roger was known as the &#34;Pirate King,&#34; the strongest and most infamous being to have sailed the Grand Line. The capture and execution of Roger by the World Government brought a change throughout the world. His last words before his death revealed the existence of the greatest treasure in the world, One Piece. It was this revelation that brought about the Grand Age of Pirates, men who dreamed of finding One Piece—which promises an unlimited amount of riches and fame—and quite possibly the pinnacle of glory and the title of the Pirate King. Enter Monkey D. Luffy, a 17-year-old boy who defies your standard definition of a pirate. Rather than the popular persona of a wicked, hardened, toothless pirate ransacking villages for fun, Luffy\&#39;s reason for being a pirate is one of pure wonder: the thought of an exciting adventure that leads him to intriguing people and ultimately, the promised treasure. Following in the footsteps of his childhood hero, Luffy and his crew travel across the Grand Line, experiencing crazy adventures, unveiling dark mysteries and battling strong enemies, all in order to reach the most coveted of all fortunes—One Piece. [Written by MAL Rewrite]&#39;,
   &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/6/73245l.jpg&#39;,
   &#39;type&#39;: &#39;TV&#39;,
-  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;},
- {&#39;name&#39;: &#39;prince of tennis&#39;,
-  &#39;english_title&#39;: &#39;Tennis no Ouji-sama&#39;,
-  &#39;japanses_title&#39;: &#39;テニスの王子様&#39;,
-  &#39;genre&#39;: &#39;Shounen&#39;,
-  &#39;source&#39;: &#39;Manga&#39;,
-  &#39;duration&#39;: &#39;22 min per ep&#39;,
-  &#39;episodes&#39;: 178.0,
-  &#39;score&#39;: 7.86,
-  &#39;rank&#39;: 799.0,
-  &#39;synopsis&#39;: &#39;At the request of his father, tennis prodigy Ryouma Echizen has returned from America and is ready to take the Japanese tennis scene by storm. Aiming to become the best tennis player in the country, he enrolls in Seishun Academy—home to one of the best middle school tennis teams in Japan. After Ryouma catches the captain\&#39;s eye, he finds himself playing for a spot on the starting lineup in the intra-school ranking matches despite only being a freshman. Due to his age, the rest of the Seishun Boys\&#39; Tennis Team are initially reluctant to accept him, but his skill and determination convinces them to let him in. Armed with their new &#34;super rookie,&#34; Seishun sets out to claim a spot in the National Tournament, hoping to take the coveted title for themselves. In order to do so, the team must qualify by playing through the Tokyo Prefectural and Kanto Regionals. Yet, the road ahead of them is shared by a plethora of strong schools, each playing tennis in unique ways for their own reasons. Ryouma and his teammates must learn to cooperate if they want to become the champions they aspire to be. [Written by MAL Rewrite]&#39;,
-  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/6/21624l.jpg&#39;,
-  &#39;type&#39;: &#39;TV&#39;,
-  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;},
- {&#39;name&#39;: &#39;yakitate   japan&#39;,
-  &#39;english_title&#39;: &#39;Yakitate!! Japan&#39;,
-  &#39;japanses_title&#39;: &#39;焼きたて!! ジャぱん&#39;,
-  &#39;genre&#39;: &#39;Shounen&#39;,
-  &#39;source&#39;: &#39;Manga&#39;,
-  &#39;duration&#39;: &#39;24 min per ep&#39;,
-  &#39;episodes&#39;: 69.0,
-  &#39;score&#39;: 7.92,
-  &#39;rank&#39;: 687.0,
-  &#39;synopsis&#39;: &#34;While countries such as France, England, and Germany all have their own internationally celebrated bread, Japan simply does not have one that can match in reputation. Thus after discovering the wonders of breadmaking at a young age, Kazuma Azuma embarks on a quest to create Japan&#39;s own unique national bread. And being blessed with unusually warm hands that allow dough to ferment faster, Azuma is able to bring his baking innovations to another level. As he begins working at the prestigious Japanese bakery chain, Pantasia, Azuma encounters other talented bakers and experiences firsthand the competitive world of baking. Along with his newfound friends and rivals, Azuma strives to create new and unparalleled bread that will start a baking revolution. [Written by MAL Rewrite]&#34;,
-  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/3/76432l.jpg&#39;,
-  &#39;type&#39;: &#39;TV&#39;,
-  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;},
- {&#39;name&#39;: &#39;black cat&#39;,
-  &#39;english_title&#39;: &#39;Black Cat (TV)&#39;,
-  &#39;japanses_title&#39;: &#39;ブラックキャット&#39;,
-  &#39;genre&#39;: &#39;Shounen&#39;,
-  &#39;source&#39;: &#39;Manga&#39;,
-  &#39;duration&#39;: &#39;24 min per ep&#39;,
-  &#39;episodes&#39;: 23.0,
-  &#39;score&#39;: 7.33,
-  &#39;rank&#39;: 2390.0,
-  &#39;synopsis&#39;: &#39;Completing every job with ruthless accuracy, Train Heartnet is an infamous assassin with no regard for human life. Donning the moniker &#34;Black Cat&#34; in the underground world, the elite killer works for the powerful secret organization known only as Chronos. One gloomy night, the blasé gunman stumbles upon Saya Minatsuki, an enigmatic bounty hunter, and soon develops an odd friendship with her. Influenced by Saya\&#39;s positive outlook on life, Train begins to rethink his life. Deciding to abandon his role as the Black Cat, he instead opts to head down a virtuous path as an honest bounty hunter. However, Chronos—and particularly Creed Diskenth, Train\&#39;s possessive underling—is not impressed with Train\&#39;s sudden change of heart and vows to resort to extreme measures in order to bring back the emissary of bad luck. This assassin turned &#34;stray cat&#34; can only wander so far before the deafening sound of gunfire rings out. [Written by MAL Rewrite]&#39;,
-  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/1183/133280l.jpg&#39;,
-  &#39;type&#39;: &#39;TV&#39;,
   &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;}]</pre>
 </div>
 
@@ -16359,6 +16354,22 @@ or
 
 </div>
 
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+     </div>
+</div>
+</div>
 </div>
 
 </div>
