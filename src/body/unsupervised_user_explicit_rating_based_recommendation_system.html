@@ -50291,9 +50291,11 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># We can get the recommendation as a dictionary</span>
-<span class="c1"># We select the name of the anime we want to find similitudes and Then the number of suggestions we have(we might get less if there not so many o none if there is no matches)</span>
-<span class="c1"># Then the genre we want (or write &quot;All&quot;)</span>
-<span class="c1"># Then the type we want (or write &quot;All&quot;)</span>
+<span class="c1"># We select the name of the anime we want to find similitudes</span>
+<span class="c1"># Then the number of suggestions we have(we might get less if there not so many o none if there is no matches)</span>
+<span class="c1"># Then the genre we want (or write &quot;All&quot; if we shoose &quot;or&quot; filter)</span>
+<span class="c1"># Then the type we want (or write &quot;All&quot; if we shoose &quot;or&quot; filter)</span>
+<span class="c1"># We must select a type or filtering, &quot;or&quot;/&quot;and&quot; </span>
 <span class="n">create_dict</span><span class="p">(</span><span class="n">unsupervised_user_based_recommender</span><span class="p">(</span><span class="s2">&quot;Naruto&quot;</span><span class="p">,</span><span class="mi">5</span><span class="p">),[</span><span class="s2">&quot;Shounen&quot;</span><span class="p">],[</span><span class="s2">&quot;TV&quot;</span><span class="p">],</span><span class="s2">&quot;or&quot;</span><span class="p">)</span>
 </pre></div>
 

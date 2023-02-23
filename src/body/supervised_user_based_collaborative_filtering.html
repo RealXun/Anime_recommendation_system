@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>unsupervised_content_based_filtered_filtered</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>supervised_user_based_collaborative_filtering</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14597,7 +14597,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Unsupervised-content-based-recommendation-system">Unsupervised content based recommendation system<a class="anchor-link" href="#Unsupervised-content-based-recommendation-system">&#182;</a></h1>
+<h1 id="Supervised-user-based-collaborative-filtering">Supervised user based collaborative filtering<a class="anchor-link" href="#Supervised-user-based-collaborative-filtering">&#182;</a></h1>
 </div>
 </div>
 </div>
@@ -14612,23 +14612,39 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[36]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Standard library imports</span>
 <span class="kn">import</span> <span class="nn">os</span> <span class="c1"># allows access to OS-dependent functionalities</span>
-<span class="kn">import</span> <span class="nn">sys</span> <span class="c1"># provides access to system-specific parameters and functions in Python.</span>
+<span class="kn">import</span> <span class="nn">re</span> <span class="c1">#  regular expression matching operations similar to those found in Perl</span>
+<span class="kn">import</span> <span class="nn">sys</span> <span class="c1"># to manipulate different parts of the Python runtime environment</span>
+<span class="kn">import</span> <span class="nn">warnings</span> <span class="c1"># is used to display the message Warning</span>
+<span class="kn">import</span> <span class="nn">pickle</span> <span class="c1"># serializing and deserializing a Python object structure.</span>
+
+<span class="c1"># Third party libraries</span>
+<span class="kn">from</span> <span class="nn">fastparquet</span> <span class="kn">import</span> <span class="n">write</span> <span class="c1"># parquet format, aiming integrate into python-based big data work-flows</span>
+<span class="kn">from</span> <span class="nn">fuzzywuzzy</span> <span class="kn">import</span> <span class="n">fuzz</span> <span class="c1"># used for string matching</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> <span class="c1"># functions for working in domain of linear algebra, fourier transform, matrices and arrays</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span> <span class="c1"># data analysis and manipulation tool</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">joblib</span> <span class="c1"># set of tools to provide lightweight pipelining in Python</span>
 
-<span class="c1"># setting display options</span>
+<span class="c1"># visualization</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span> <span class="c1"># collection of functions that make matplotlib work like MATLAB.</span>
+
+<span class="c1"># Surprise libraries</span>
+<span class="kn">from</span> <span class="nn">surprise</span> <span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">Reader</span><span class="p">,</span> <span class="n">accuracy</span>
+<span class="kn">from</span> <span class="nn">surprise.model_selection</span> <span class="kn">import</span> <span class="n">GridSearchCV</span><span class="p">,</span> <span class="n">train_test_split</span><span class="p">,</span> <span class="n">cross_validate</span>
+<span class="kn">from</span> <span class="nn">surprise</span> <span class="kn">import</span> <span class="n">SVD</span><span class="p">,</span> <span class="n">SVDpp</span><span class="p">,</span> <span class="n">SlopeOne</span><span class="p">,</span> <span class="n">NMF</span><span class="p">,</span> <span class="n">NormalPredictor</span><span class="p">,</span> <span class="n">KNNBaseline</span><span class="p">,</span> <span class="n">KNNBasic</span><span class="p">,</span> <span class="n">KNNWithMeans</span><span class="p">,</span> <span class="n">KNNWithZScore</span><span class="p">,</span> <span class="n">BaselineOnly</span><span class="p">,</span> <span class="n">CoClustering</span>
+
+<span class="c1"># pip install git+https://github.com/NicolasHug/surprise.git</span>
+
 <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.max_columns&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.max_rows&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.max_colwidth&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -14647,12 +14663,12 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <span class="kn">from</span> <span class="nn">training</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="c1">#Preparing folder variables</span>
+
 <span class="n">main_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pardir</span><span class="p">))</span>
 <span class="n">data_folder</span> <span class="o">=</span> <span class="p">(</span><span class="n">main_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
 <span class="n">saved_models_folder</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;saved_models&quot;</span><span class="p">)</span>
 <span class="n">raw_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;_raw&quot;</span><span class="p">)</span>
 <span class="n">processed_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;processed&quot;</span><span class="p">)</span>
-<span class="n">content_based_supervised_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">main_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;processed&quot;</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;content_based_supervised&quot;</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14660,6 +14676,28 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>c:\Users\Chrisitan\AppData\Local\Programs\Python\Python38\lib\site-packages\fuzzywuzzy\fuzz.py:11: UserWarning: Using slow pure-python SequenceMatcher. Install python-Levenshtein to remove this warning
+  warnings.warn(&#39;Using slow pure-python SequenceMatcher. Install python-Levenshtein to remove this warning&#39;)
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
@@ -14667,18 +14705,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Cleaning-and-preparing-the-data">Cleaning and preparing the data<a class="anchor-link" href="#Cleaning-and-preparing-the-data">&#182;</a></h2>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Checking">Checking<a class="anchor-link" href="#Checking">&#182;</a></h3>
+<h2 id="Loading-and-cleaning-data">Loading and cleaning data<a class="anchor-link" href="#Loading-and-cleaning-data">&#182;</a></h2>
 </div>
 </div>
 </div>
@@ -14687,7 +14714,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[37]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># CSV file called &quot;anime.csv&quot; from a directory called raw_data and returns the contents as a Pandas DataFrame</span>
@@ -14707,386 +14734,10 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[38]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Checking for unique values.</span>
-<span class="n">to_check</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rating&quot;</span><span class="p">,</span><span class="s2">&quot;genre&quot;</span><span class="p">,</span><span class="s2">&quot;type&quot;</span><span class="p">,</span><span class="s2">&quot;source&quot;</span><span class="p">]</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">to_check</span><span class="p">:</span>
-    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Unique values of column:&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span> <span class="p">(</span><span class="n">anime</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">(),</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Unique values of column: rating 
-
-[&#39;R - 17+ (violence &amp; profanity)&#39; &#39;PG-13 - Teens 13 or older&#39;
- &#39;PG - Children&#39; &#39;R+ - Mild Nudity&#39; &#39;G - All Ages&#39; &#39;Rx - Hentai&#39; nan] 
-
-Unique values of column: genre 
-
-[&#39;Action, Adventure, Comedy, Drama, Sci-Fi, Space&#39;
- &#39;Action, Drama, Mystery, Sci-Fi, Space&#39; &#39;Action, Comedy, Sci-Fi&#39; ...
- &#39;Action, Fantasy, Super Power, Supernatural, Vampire&#39;
- &#39;Action, Adventure, Fantasy, Game, Kids&#39;
- &#39;Comedy, Fantasy, Slice of Life, Supernatural&#39;] 
-
-Unique values of column: type 
-
-[&#39;TV&#39; &#39;Movie&#39; &#39;OVA&#39; &#39;Special&#39; &#39;ONA&#39; &#39;Music&#39; nan] 
-
-Unique values of column: source 
-
-[&#39;Original&#39; &#39;Manga&#39; &#39;Light novel&#39; &#39;Game&#39; &#39;Visual novel&#39; &#39;4-koma manga&#39;
- &#39;Novel&#39; &#39;Other&#39; &#39;Unknown&#39; &#39;Picture book&#39; &#39;Web manga&#39; &#39;Music&#39; &#39;Radio&#39;
- &#39;Book&#39; &#39;Card game&#39; &#39;Mixed media&#39;] 
-
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We can see that we have some NaN and Unknown values.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[39]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># the null values</span>
-<span class="nb">print</span><span class="p">(((</span><span class="n">anime</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">anime</span><span class="p">))</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total number of records: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">anime</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>score             14.048029
-rank               9.572986
-synopsis           2.475207
-rating             1.614622
-genre              0.499959
-type               0.172117
-japanses_title     0.155725
-anime_id           0.000000
-name               0.000000
-english_title      0.000000
-source             0.000000
-duration           0.000000
-episodes           0.000000
-members            0.000000
-cover              0.000000
-dtype: float64
-Total number of records: 12201
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Cleaning">Cleaning<a class="anchor-link" href="#Cleaning">&#182;</a></h3>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>The columns rank, synopsis and japanses_title will only be use for showing the results of the recommendation, so we do not care about this 3 columns.</p>
-<p>We will deal with the others.</p>
-<p>To do that we will call the next functions from cleaning.py in utils folder.</p>
-<ul>
-<li>clean_anime_df</li>
-<li>predict_source</li>
-<li>clean_synopsis</li>
-</ul>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[40]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">clean_anime_df</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>The function clean_anime_df() takes an anime dataframe as input and performs several 
-    cleaning and preprocessing steps, such as removing special characters from anime names, 
-    converting all names to lowercase, filling missing values for &#34;episodes&#34; and &#34;score&#34; 
-    columns with their median, dropping rows with null values for &#34;genre&#34; or &#34;type&#34; columns, 
-    and saving the cleaned dataframe to a CSV file. The cleaned dataframe is also returned as output.
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[41]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">predict_source</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    The function takes a pandas dataframe containing anime data and 
-    fills in missing values in the &#39;source&#39; column using a Decision 
-    Tree Classifier based on the &#39;episodes&#39; and &#39;type&#39; columns. The 
-    &#39;type&#39; column is converted to categorical data using get_dummies 
-    before fitting the model. The function returns the original 
-    dataframe with missing values filled in and the model accuracy score.
-    
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[42]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">clean_synopsis</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    This code uses regular expressions to clean up the text in the &#34;synopsis&#34; column
-    of a pandas DataFrame. It removes any text in square brackets, removes any c
-    arriage returns or newline characters, and removes any extra whitespace at 
-    the beginning or end of the string.
-    
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>The steps of this function:</p>
-<ul>
-<li>Create a copy of the original dataframe called anime_cleaned</li>
-<li>Remove all non-word characters from the name column and replace them with spaces</li>
-<li>Convert all names to lowercase</li>
-<li>Replace all &quot;Unknown&quot; values in the episodes column with NaN</li>
-<li>Replace all NaN values in the episodes column with the median of the column</li>
-<li>Convert the score column to float type</li>
-<li>Replace all NaN values in the score column with the median of the column</li>
-<li>Convert the members column to float type</li>
-<li>Apply the clean_synopsis function to the synopsis column<ul>
-<li>Remove \r and \n from synopsis</li>
-<li>Remove extra spaces from synopsis</li>
-<li>Replace encoded characters</li>
-<li>Return synopsis</li>
-</ul>
-</li>
-<li>Add prediction to the source column of the dataframe using the predict_source function<ul>
-<li>change unknown values to NaN from 'source' column</li>
-<li>fill missing values in the 'episodes' column with 0</li>
-<li>create dummy variables for the 'type' column</li>
-<li>create dummy variables for the 'rating' column</li>
-<li>First, we area going to split the genre column by comma, then expand the list, so there is a column for each genre. We will have 13 columns, because the anime with most genres tags has 13 tags</li>
-<li>Now we can get the list of unique genres. We &quot;convert&quot; the dataframe into a single dimension array and take the unique values</li>
-<li>Getting the dummy variables will result in having a lot more columns than unique genres</li>
-<li>So we sum up the columns with the same genre to have a single column for each genre</li>
-<li>split the data into training and validation sets</li>
-<li>create the decision tree classifier</li>
-<li>train the model using the training data</li>
-<li>predict the 'source' values for the validation data</li>
-<li>fill the 'NaN' 'source' values in the original DataFrame with the predicted values</li>
-<li>undo the get_dummies() operation to convert the one-hot encoded 'type' and 'rating' columns back to a single categorical column</li>
-<li>Dropping unnecessary columns</li>
-<li>calculate the accuracy of the model</li>
-</ul>
-</li>
-<li>Replace all NaN values in the genre column with the mode of the column</li>
-<li>Replace all NaN values in the rating column with the mode of the column</li>
-<li>Replace all NaN values in the type column with the mode of the column</li>
-<li>Save the cleaned dataframe to a CSV file called &quot;_anime_to_compare_with_name.csv&quot;</li>
-</ul>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[43]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">anime_cleaned</span> <span class="o">=</span> <span class="n">clean_anime_df</span><span class="p">(</span><span class="n">anime</span><span class="p">)</span><span class="c1"># from cleaning.py</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>The accuracy of source prediction is 0.8886884550084889
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[44]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">anime_cleaned</span><span class="o">.</span><span class="n">shape</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">rating</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15102,13 +14753,107 @@ Total number of records: 12201
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[44]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>user_id</th>
+      <th>anime_id</th>
+      <th>rating</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>20</td>
+      <td>-1</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>24</td>
+      <td>-1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1</td>
+      <td>79</td>
+      <td>-1</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1</td>
+      <td>226</td>
+      <td>-1</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1</td>
+      <td>241</td>
+      <td>-1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">rating</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>(12201, 15)</pre>
+<pre>(7813737, 3)</pre>
 </div>
 
 </div>
@@ -15117,29 +14862,15 @@ Total number of records: 12201
 
 </div>
 
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We can see that we have no null values in the columns we need.</p>
-
-</div>
-</div>
-</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[45]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># let&#39;s check the result of this cleaning process.</span>
-<span class="nb">print</span><span class="p">(((</span><span class="n">anime_cleaned</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">anime_cleaned</span><span class="p">))</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total number of records: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">anime_cleaned</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">rating</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15153,30 +14884,87 @@ Total number of records: 12201
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[5]:</div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>rank              9.572986
-synopsis          2.475207
-japanses_title    0.155725
-anime_id          0.000000
-name              0.000000
-english_title     0.000000
-genre             0.000000
-source            0.000000
-duration          0.000000
-episodes          0.000000
-score             0.000000
-members           0.000000
-cover             0.000000
-type              0.000000
-rating            0.000000
-dtype: float64
-Total number of records: 12201
-</pre>
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>user_id</th>
+      <th>anime_id</th>
+      <th>rating</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>count</th>
+      <td>7.813737e+06</td>
+      <td>7.813737e+06</td>
+      <td>7.813737e+06</td>
+    </tr>
+    <tr>
+      <th>mean</th>
+      <td>3.672796e+04</td>
+      <td>8.909072e+03</td>
+      <td>6.144030e+00</td>
+    </tr>
+    <tr>
+      <th>std</th>
+      <td>2.099795e+04</td>
+      <td>8.883950e+03</td>
+      <td>3.727800e+00</td>
+    </tr>
+    <tr>
+      <th>min</th>
+      <td>1.000000e+00</td>
+      <td>1.000000e+00</td>
+      <td>-1.000000e+00</td>
+    </tr>
+    <tr>
+      <th>25%</th>
+      <td>1.897400e+04</td>
+      <td>1.240000e+03</td>
+      <td>6.000000e+00</td>
+    </tr>
+    <tr>
+      <th>50%</th>
+      <td>3.679100e+04</td>
+      <td>6.213000e+03</td>
+      <td>7.000000e+00</td>
+    </tr>
+    <tr>
+      <th>75%</th>
+      <td>5.475700e+04</td>
+      <td>1.409300e+04</td>
+      <td>9.000000e+00</td>
+    </tr>
+    <tr>
+      <th>max</th>
+      <td>7.351600e+04</td>
+      <td>3.451900e+04</td>
+      <td>1.000000e+01</td>
+    </tr>
+  </tbody>
+</table>
 </div>
 </div>
 
@@ -15185,45 +14973,16 @@ Total number of records: 12201
 </div>
 
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Preparing-the-data">Preparing the data<a class="anchor-link" href="#Preparing-the-data">&#182;</a></h3>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Now we are going to prepare the data for NearestNeighbors model</p>
-<p>To do that we will call the next function from cleaning.py in utils folder.</p>
-<ul>
-<li>prepare_supervised_content_based</li>
-</ul>
-<p>Since que are the columnas &quot;episodes&quot;, &quot;score&quot; and &quot;members&quot;, we will as well use:</p>
-<ul>
-<li>MinMaxScaler and calling fit_transform().</li>
-</ul>
 
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[46]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">prepare_supervised_content_based</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">supervised_rating_cleaning</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -15231,34 +14990,6 @@ Total number of records: 12201
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    This function prepares the content-based features for a supervised 
-    learning model. It first splits the genres into separate columns and 
-    gets unique genres. It then creates dummy variables for genres and 
-    type, and sum up the columns for the same genre to have a single 
-    column for each genre. Finally, it drops irrelevant columns and saves 
-    the resulting dataframe to a CSV file. The function returns the resulting dataframe.
-    
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
@@ -15266,21 +14997,12 @@ Total number of records: 12201
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>The steps of this function:</p>
+<p>Steps of supervised_rating_cleaning:</p>
 <ul>
-<li>Split the &quot;genre&quot; column into multiple columns</li>
-<li>Get unique genre values</li>
-<li>Create dummy variables for the genre columns</li>
-<li>For each unique genre, sum up the corresponding dummy variables and add a new column for that genre</li>
-<li>Create dummy variables for the &quot;type&quot; column</li>
-<li>Create dummy variables for the &quot;rating&quot; column</li>
-<li>Create dummy variables for the &quot;source&quot; column</li>
-<li>Concatenate the &quot;type&quot; dummy variables with the existing DataFrame</li>
-<li>Drop unnecessary columns</li>
-<li>Create a new DataFrame that is a copy of the modified DataFrame</li>
-<li>Reset the index of the new DataFrame</li>
-<li>Save the modified DataFrame as a CSV file</li>
-<li>Return the modified DataFrame</li>
+<li>selects only those rows from the 'rating' DataFrame where the value of the 'rating' column is greater than 0. The resulting DataFrame is assigned to the variable 'ratingdf'.</li>
+<li>resets the index of the 'ratingdf' DataFrame. This means that the current index is replaced with a sequential index starting from 0, and a new column called 'index' is added to the DataFrame to store the old index values.</li>
+<li>drops the 'index' column from the 'ratingdf' DataFrame. The 'axis=1' argument specifies that the column should be dropped, and 'inplace=True' means that the changes should be made to the DataFrame in place (i.e., the DataFrame is modified directly rather than creating a copy).</li>
+<li>returns the modified 'ratingdf' DataFrame as the output of the function.</li>
 </ul>
 
 </div>
@@ -15291,15 +15013,55 @@ Total number of records: 12201
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[47]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">anime_features</span> <span class="o">=</span> <span class="n">prepare_supervised_content_based</span><span class="p">(</span><span class="n">anime_cleaned</span><span class="p">)</span> <span class="c1"># from cleaning.py</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Cleaning the data</span>
+<span class="n">ratingdf</span> <span class="o">=</span> <span class="n">supervised_rating_cleaning</span><span class="p">(</span><span class="n">rating</span><span class="p">)</span>
 </pre></div>
 
      </div>
 </div>
 </div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ratingdf</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[7]:</div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>(6337241, 3)</pre>
+</div>
+
+</div>
+
+</div>
+
 </div>
 
 </div>
@@ -15309,12 +15071,24 @@ Total number of records: 12201
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>anime_features.head(5)</p>
+<h2 id="Preparing-the-data-for-baseline">Preparing the data for baseline<a class="anchor-link" href="#Preparing-the-data-for-baseline">&#182;</a></h2>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>In here we are goin to prepare de data to be used in the model baseline.</p>
+<p>To do a baseline we will use a smaller dataset and then use the whole dataset in the selected mode. Because using a smaller dataset for prototyping and testing can be a good way to quickly iterate and experiment with different algorithms and hyperparameters before scaling up to the full dataset.</p>
 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15322,35 +15096,55 @@ Total number of records: 12201
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[48]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">anime_features</span><span class="o">.</span><span class="n">shape</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">prepare_for_different_models</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    The code reads two CSV files (anime.csv and rating.csv.zip) and loads them into dataframes. </span>
+<span class="sd">    Then it creates a subset of the rating dataframe containing only rows where the rating is </span>
+<span class="sd">    greater than 0 and removes the index column. Next, it samples a subset of the data with </span>
+<span class="sd">    a specified size, grouped by the rating column.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># Load &#39;anime.csv&#39; file into a pandas DataFrame object called &#39;anime&#39;</span>
+    <span class="n">anime</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">raw_data</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;anime.csv&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load &#39;rating.csv.zip&#39; file into a pandas DataFrame object called &#39;rating&#39;</span>
+    <span class="n">rating</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">raw_data</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;rating.csv.zip&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create a new DataFrame &#39;anime_mapping&#39; that is a copy of the &#39;anime&#39; DataFrame and remove the &#39;episodes&#39;, &#39;members&#39;, and &#39;rating&#39; columns</span>
+    <span class="n">anime_mapping</span> <span class="o">=</span> <span class="n">anime</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">anime_mapping</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;episodes&#39;</span><span class="p">,</span><span class="s1">&#39;members&#39;</span><span class="p">,</span><span class="s1">&#39;rating&#39;</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Filter out all ratings less than or equal to 0 and reset the index of the DataFrame</span>
+    <span class="n">ratingdf</span> <span class="o">=</span> <span class="n">rating</span><span class="p">[</span><span class="n">rating</span><span class="o">.</span><span class="n">rating</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ratingdf</span> <span class="o">=</span> <span class="n">ratingdf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="c1"># Drop the &#39;index&#39; column and update the DataFrame in-place</span>
+    <span class="n">ratingdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Get the shape of the DataFrame &#39;ratingdf&#39;</span>
+    <span class="n">ratingdf</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># Set the size to 100,000 and sample from the &#39;ratingdf&#39; DataFrame based on the proportion of ratings for each score</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="mi">100000</span>
+
+    <span class="c1"># This will make sure that the sampled data has roughly the same proportion of ratings for each score as the original data</span>
+    <span class="n">ratingdf_sample</span> <span class="o">=</span> <span class="n">ratingdf</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;rating&quot;</span><span class="p">,</span> <span class="n">group_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">size</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">ratingdf</span><span class="p">)))))</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Create a new &#39;Reader&#39; object with the rating scale set to a range between 1 and 10</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">Reader</span><span class="p">(</span><span class="n">rating_scale</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+
+    <span class="c1"># Load the sampled data into a &#39;Dataset&#39; object using the &#39;load_from_df&#39; method and the &#39;reader&#39; object</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">load_from_df</span><span class="p">(</span><span class="n">ratingdf_sample</span><span class="p">[[</span><span class="s1">&#39;user_id&#39;</span><span class="p">,</span> <span class="s1">&#39;anime_id&#39;</span><span class="p">,</span> <span class="s1">&#39;rating&#39;</span><span class="p">]],</span> <span class="n">reader</span><span class="p">)</span>
+
+    <span class="c1"># Saving the table to pickle</span>
+    <span class="n">joblib</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">processed_data</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;data_reader_for_different_models.pkl&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">prepare_for_different_models</span><span class="p">()</span>
 </pre></div>
 
      </div>
 </div>
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[48]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>(12201, 73)</pre>
-</div>
-
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -15360,9 +15154,21 @@ Total number of records: 12201
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>In order to apply the MinMaxScaler to a dataset, typically we need to first &quot;fit&quot; the scaler to the data, which means calculating the minimum and maximum values for each feature in the dataset. This is done using the fit() method of the MinMaxScaler object. After fitting the scaler, you can then &quot;transform&quot; the data using the transform() method, which applies the scaling formula to each feature.</p>
-<p>However, in some cases, if better to both fit the scaler to the data and transform the data in a single step. This is where the fit_transform() method comes in handy. Calling fit_transform() on a MinMaxScaler object will both fit the scaler to the data and transform the data in a single step.</p>
-<p>Using a MinMaxScaler and calling fit_transform() is a common way to scale feature values to be within a specific range.</p>
+<h2 id="Model-Baseline">Model Baseline<a class="anchor-link" href="#Model-Baseline">&#182;</a></h2>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>The next function that performs cross-validation for several collaborative filtering algorithms using the Surprise library and returns the results in a pandas DataFrame. The function takes a Surprise dataset object as input and outputs two DataFrames, one with the results for each individual algorithm and another with the results for all algorithms.</p>
+<p>The algorithms used in this function are SVD, SVD++, SlopeOne, NMF, NormalPredictor, BaselineOnly, and CoClustering. For each algorithm, the function performs 5-fold cross-validation and computes the RMSE, MSE, MAE, and FCP metrics. The results are then stored in a DataFrame and saved to a file.</p>
+<p>Note that the function only runs the SVD algorithm by default. To run other algorithms, you need to uncomment the relevant lines in the for loop. Also, the function assumes that the saved_models_folder variable has been defined elsewhere in the code.</p>
+<p>Overall, this function provides a basic implementation of collaborative filtering algorithms using the Surprise library and can be used as a starting point for building more sophisticated recommendation systems</p>
 
 </div>
 </div>
@@ -15372,66 +15178,72 @@ Total number of records: 12201
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[49]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">min_max</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">()</span>
-<span class="n">min_max_features</span> <span class="o">=</span> <span class="n">min_max</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">anime_features</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[50]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">min_max_features</span><span class="o">.</span><span class="n">shape</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[50]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>(12201, 73)</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[51]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">min_max_features</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">surprise.model_selection</span> <span class="kn">import</span> <span class="n">KFold</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Function that runs several collaborative filtering algorithms on an input dataset using cross-validation </span>
+<span class="sd">and computes several evaluation metrics. The function loops through a list of algorithms, </span>
+<span class="sd">runs cross-validation with each algorithm, computes the mean evaluation results across all folds, </span>
+<span class="sd">and appends the results to an overall list of results. It then saves the evaluation results </span>
+<span class="sd">of each algorithm in a Parquet file and saves the overall evaluation results of all algorithms </span>
+<span class="sd">in another Parquet file. The function returns the overall evaluation results.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="k">def</span> <span class="nf">baseline_all</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    
+    <span class="c1"># create an empty list to hold the benchmark results for all algorithms</span>
+    <span class="n">benchmark</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># instantiate the collaborative filtering algorithms we want to evaluate</span>
+    <span class="n">svd</span> <span class="o">=</span> <span class="n">SVD</span><span class="p">()</span>
+    <span class="n">svdp</span> <span class="o">=</span> <span class="n">SVDpp</span><span class="p">()</span>
+    <span class="n">slpo</span> <span class="o">=</span> <span class="n">SlopeOne</span><span class="p">()</span>
+    <span class="n">nm</span>  <span class="o">=</span> <span class="n">NMF</span><span class="p">()</span>
+    <span class="n">nmlp</span> <span class="o">=</span> <span class="n">NormalPredictor</span><span class="p">()</span>
+    <span class="n">baseonly</span> <span class="o">=</span> <span class="n">BaselineOnly</span><span class="p">()</span>
+    <span class="n">coclus</span> <span class="o">=</span> <span class="n">CoClustering</span><span class="p">()</span>
+
+    <span class="c1"># loop through each algorithm and evaluate it using 5-fold cross-validation</span>
+    <span class="k">for</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="p">[</span><span class="n">svd</span><span class="p">,</span><span class="n">svdp</span><span class="p">,</span><span class="n">slpo</span><span class="p">,</span><span class="n">nm</span><span class="p">,</span><span class="n">nmlp</span><span class="p">,</span><span class="n">baseonly</span><span class="p">,</span><span class="n">coclus</span><span class="p">]:</span>
+
+        <span class="c1"># create an empty list to hold the benchmark results for this algorithm</span>
+        <span class="n">benchmark_inndividual</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># print a message to indicate which algorithm is being evaluated</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">algorithm</span><span class="p">,</span><span class="s2">&quot;started&quot;</span><span class="p">)</span>
+
+        <span class="n">folds</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+        <span class="c1"># run 5-fold cross-validation and compute RMSE, MSE, MAE, and FCP metrics</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">cross_validate</span><span class="p">(</span><span class="n">algorithm</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;RMSE&#39;</span><span class="p">,</span><span class="s1">&#39;MSE&#39;</span><span class="p">,</span><span class="s1">&#39;MAE&#39;</span><span class="p">,</span><span class="s1">&#39;FCP&#39;</span><span class="p">],</span> <span class="n">cv</span><span class="o">=</span><span class="n">folds</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># print a message to indicate that the algorithm has finished evaluating</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">algorithm</span><span class="p">,</span><span class="s2">&quot;finished&quot;</span><span class="p">)</span>
+
+        <span class="c1"># calculate the mean of each metric over the 5 folds and store the results in a DataFrame</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># extract the name of the algorithm from the object and append it to the DataFrame</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">algorithm</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">algorithm</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Algorithm&#39;</span><span class="p">]))</span>
+
+        <span class="c1"># add the results for this algorithm to the list of individual benchmark results</span>
+        <span class="n">benchmark_inndividual</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+        <span class="c1"># add the results for this algorithm to the list of global benchmark results</span>
+        <span class="n">benchmark</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+        <span class="c1"># convert the list of results for this algorithm to a DataFrame and save it to a file</span>
+        <span class="n">dfscores_individual</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">benchmark_inndividual</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;Algorithm&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;test_rmse&#39;</span><span class="p">)</span>
+        <span class="n">write</span><span class="p">(</span><span class="n">saved_models_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_results.parq&quot;</span><span class="p">,</span> <span class="n">dfscores_individual</span><span class="p">)</span>
+    
+    <span class="c1"># convert the list of benchmark results for all algorithms to a DataFrame and save it to a file</span>
+    <span class="n">dfscores</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">benchmark</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;Algorithm&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;test_rmse&#39;</span><span class="p">)</span>
+    <span class="n">write</span><span class="p">(</span><span class="n">saved_models_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;Others_Models_results.parq&quot;</span><span class="p">,</span> <span class="n">dfscores</span><span class="p">)</span>
+
+    <span class="c1"># return the DataFrame with the benchmark results for all algorithms</span>
+    <span class="k">return</span> <span class="n">dfscores</span>
 </pre></div>
 
      </div>
@@ -15439,54 +15251,6 @@ Total number of records: 12201
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[51]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>array([[1.37589433e-02, 9.50413223e-01, 4.80139302e-01, ...,
-        0.00000000e+00, 0.00000000e+00, 1.00000000e+00],
-       [0.00000000e+00, 8.99449036e-01, 1.35742550e-01, ...,
-        0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
-       [1.37589433e-02, 8.77410468e-01, 2.79180047e-01, ...,
-        0.00000000e+00, 0.00000000e+00, 1.00000000e+00],
-       ...,
-       [5.50357733e-04, 6.43250689e-01, 3.70840862e-04, ...,
-        0.00000000e+00, 0.00000000e+00, 1.00000000e+00],
-       [5.50357733e-04, 6.30853994e-01, 1.01586725e-04, ...,
-        0.00000000e+00, 0.00000000e+00, 1.00000000e+00],
-       [0.00000000e+00, 6.33608815e-01, 0.00000000e+00, ...,
-        0.00000000e+00, 0.00000000e+00, 0.00000000e+00]])</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Rounding the values using np.round(min_max_features, 2) will round each value in min_max_features to 2 decimal places, which can make the resulting array easier to read and work with. This is especially useful when dealing with large arrays or matrices, where the values can be difficult to interpret if there are too many decimal places.</p>
-<p>It's worth noting that the use of np.round() in this code is not strictly necessary and is largely a matter of personal preference. Some people might prefer to work with the original unscaled values or may choose to use a different rounding method depending on the specific requirements of their project.</p>
-
-</div>
-</div>
-</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -15495,63 +15259,7 @@ Total number of records: 12201
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[52]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">min_max_features</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[52]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>array([[0.01, 0.95, 0.48, ..., 0.  , 0.  , 1.  ],
-       [0.  , 0.9 , 0.14, ..., 0.  , 0.  , 0.  ],
-       [0.01, 0.88, 0.28, ..., 0.  , 0.  , 1.  ],
-       ...,
-       [0.  , 0.64, 0.  , ..., 0.  , 0.  , 1.  ],
-       [0.  , 0.63, 0.  , ..., 0.  , 0.  , 1.  ],
-       [0.  , 0.63, 0.  , ..., 0.  , 0.  , 0.  ]])</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Finding-the-best-parameters-for-NearestNeighbors-model">Finding the best parameters for NearestNeighbors model<a class="anchor-link" href="#Finding-the-best-parameters-for-NearestNeighbors-model">&#182;</a></h2>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[53]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">param_NearestNeighbors</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">baseline_all</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -15571,17 +15279,29 @@ Total number of records: 12201
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    The function param_NearestNeighbors uses GridSearchCV from scikit-learn 
-    to perform a grid search over a range of hyperparameters for the 
-    NearestNeighbors model. It takes a dataframe df as input and returns 
-    the best hyperparameters found during the grid search. The hyperparameters 
-    being searched over include n_neighbors, radius, algorithm, leaf_size, 
-    metric, and p. The scoring metric being used is &#34;accuracy&#34; and the refit 
-    parameter is set to &#34;precision_score&#34;. cv=2 sets the number of cross-validation 
-    folds to 2, and n_jobs=-1 sets the number of CPU cores used to parallelize 
-    the search to be the maximum available.
+<pre>&lt;surprise.prediction_algorithms.matrix_factorization.SVD object at 0x000001B9C9710760&gt; started
+Evaluating RMSE, MSE, MAE, FCP of algorithm SVD on 5 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Fold 4  Fold 5  Mean    Std     
+RMSE (testset)    1.1336  1.1320  1.1339  1.1326  1.1328  1.1330  0.0007  
+MSE (testset)     1.2850  1.2814  1.2857  1.2827  1.2832  1.2836  0.0016  
+MAE (testset)     0.8447  0.8450  0.8448  0.8446  0.8446  0.8447  0.0001  
+FCP (testset)     0.7373  0.7360  0.7372  0.7370  0.7381  0.7371  0.0007  
+Fit time          132.24  123.20  125.49  134.83  130.43  129.24  4.29    
+Test time         57.05   44.47   41.61   37.90   44.47   45.10   6.44    
+&lt;surprise.prediction_algorithms.matrix_factorization.SVD object at 0x000001B9C9710760&gt; finished
+&lt;surprise.prediction_algorithms.matrix_factorization.SVDpp object at 0x000001B9C97106D0&gt; started
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
     
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>C:\Users\Chrisitan\AppData\Local\Temp\ipykernel_4728\3725587854.py:46: FutureWarning: The series.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
+  tmp = tmp.append(pd.Series([str(algorithm).split(&#39; &#39;)[0].split(&#39;.&#39;)[-1]], index=[&#39;Algorithm&#39;]))
 </pre>
 </div>
 </div>
@@ -15597,8 +15317,679 @@ Total number of records: 12201
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>The GridSearchCV function works by training and evaluating the estimator (in this case, the NearestNeighbors() object) for each combination of parameter values specified in the param_grid argument. It then returns the combination of parameter values that resulted in the best performance, as determined by the specified scoring metric.</p>
-<p>Overall, using GridSearchCV in NearestNeighbors() allows us to fine-tune the hyperparameters of the k-nearest neighbors algorithm to improve its accuracy and make better recommendations.</p>
+<h3 id="Merging-results-from-Model-Baseline">Merging results from Model Baseline<a class="anchor-link" href="#Merging-results-from-Model-Baseline">&#182;</a></h3>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_others_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">saved_models_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;Others_Models_results.parq&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;fastparquet&#39;</span><span class="p">)</span>
+<span class="n">df_others_results</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>test_rmse</th>
+      <th>test_mse</th>
+      <th>test_mae</th>
+      <th>test_fcp</th>
+      <th>fit_time</th>
+      <th>test_time</th>
+    </tr>
+    <tr>
+      <th>Algorithm</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>SVD</th>
+      <td>1.410689</td>
+      <td>1.990173</td>
+      <td>1.091799</td>
+      <td>0.549830</td>
+      <td>1.127742</td>
+      <td>0.291177</td>
+    </tr>
+    <tr>
+      <th>SVDpp</th>
+      <td>1.413802</td>
+      <td>1.998886</td>
+      <td>1.098086</td>
+      <td>0.548991</td>
+      <td>1.091193</td>
+      <td>0.738526</td>
+    </tr>
+    <tr>
+      <th>BaselineOnly</th>
+      <td>1.423057</td>
+      <td>2.025098</td>
+      <td>1.101095</td>
+      <td>0.555097</td>
+      <td>0.325870</td>
+      <td>0.144077</td>
+    </tr>
+    <tr>
+      <th>CoClustering</th>
+      <td>1.582529</td>
+      <td>2.504417</td>
+      <td>1.207506</td>
+      <td>0.566946</td>
+      <td>4.946316</td>
+      <td>0.224878</td>
+    </tr>
+    <tr>
+      <th>SlopeOne</th>
+      <td>1.701391</td>
+      <td>2.894736</td>
+      <td>1.294262</td>
+      <td>0.458307</td>
+      <td>0.578457</td>
+      <td>0.310630</td>
+    </tr>
+    <tr>
+      <th>NormalPredictor</th>
+      <td>2.139694</td>
+      <td>4.578297</td>
+      <td>1.696845</td>
+      <td>0.497400</td>
+      <td>0.116917</td>
+      <td>0.156717</td>
+    </tr>
+    <tr>
+      <th>NMF</th>
+      <td>2.499246</td>
+      <td>6.246258</td>
+      <td>2.119292</td>
+      <td>0.553087</td>
+      <td>3.484730</td>
+      <td>0.298785</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_KNNBasic_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">saved_models_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;KNNBasic_results.parq&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;fastparquet&#39;</span><span class="p">)</span>
+<span class="n">df_KNNBasic_results</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>test_rmse</th>
+      <th>test_mse</th>
+      <th>test_mae</th>
+      <th>test_fcp</th>
+      <th>fit_time</th>
+      <th>test_time</th>
+    </tr>
+    <tr>
+      <th>Algorithm</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>KNNBasic</th>
+      <td>1.643655</td>
+      <td>2.701632</td>
+      <td>1.275451</td>
+      <td>0.462612</td>
+      <td>35.4829</td>
+      <td>1.732444</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_KNNBaseline_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">saved_models_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;KNNBaseline_results.parq&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;fastparquet&#39;</span><span class="p">)</span>
+<span class="n">df_KNNBaseline_results</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>test_rmse</th>
+      <th>test_mse</th>
+      <th>test_mae</th>
+      <th>test_fcp</th>
+      <th>fit_time</th>
+      <th>test_time</th>
+    </tr>
+    <tr>
+      <th>Algorithm</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>KNNBaseline</th>
+      <td>1.498532</td>
+      <td>2.245621</td>
+      <td>1.156121</td>
+      <td>0.53585</td>
+      <td>32.409142</td>
+      <td>1.71859</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_knn_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">saved_models_folder</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;KNN_Models_results.parq&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;fastparquet&#39;</span><span class="p">)</span>
+<span class="n">df_knn_results</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>test_rmse</th>
+      <th>test_mse</th>
+      <th>test_mae</th>
+      <th>test_fcp</th>
+      <th>fit_time</th>
+      <th>test_time</th>
+    </tr>
+    <tr>
+      <th>Algorithm</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>KNNWithMeans</th>
+      <td>1.651630</td>
+      <td>2.727919</td>
+      <td>1.258240</td>
+      <td>0.466116</td>
+      <td>31.944902</td>
+      <td>1.796209</td>
+    </tr>
+    <tr>
+      <th>KNNWithZScore</th>
+      <td>1.666752</td>
+      <td>2.778087</td>
+      <td>1.267275</td>
+      <td>0.468789</td>
+      <td>36.883558</td>
+      <td>2.038430</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">vertical_concat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_others_results</span><span class="p">,</span> <span class="n">df_KNNBasic_results</span><span class="p">,</span><span class="n">df_KNNBaseline_results</span><span class="p">,</span><span class="n">df_knn_results</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">vertical_concat</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>test_rmse</th>
+      <th>test_mse</th>
+      <th>test_mae</th>
+      <th>test_fcp</th>
+      <th>fit_time</th>
+      <th>test_time</th>
+    </tr>
+    <tr>
+      <th>Algorithm</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>SVD</th>
+      <td>1.410689</td>
+      <td>1.990173</td>
+      <td>1.091799</td>
+      <td>0.549830</td>
+      <td>1.127742</td>
+      <td>0.291177</td>
+    </tr>
+    <tr>
+      <th>SVDpp</th>
+      <td>1.413802</td>
+      <td>1.998886</td>
+      <td>1.098086</td>
+      <td>0.548991</td>
+      <td>1.091193</td>
+      <td>0.738526</td>
+    </tr>
+    <tr>
+      <th>BaselineOnly</th>
+      <td>1.423057</td>
+      <td>2.025098</td>
+      <td>1.101095</td>
+      <td>0.555097</td>
+      <td>0.325870</td>
+      <td>0.144077</td>
+    </tr>
+    <tr>
+      <th>CoClustering</th>
+      <td>1.582529</td>
+      <td>2.504417</td>
+      <td>1.207506</td>
+      <td>0.566946</td>
+      <td>4.946316</td>
+      <td>0.224878</td>
+    </tr>
+    <tr>
+      <th>SlopeOne</th>
+      <td>1.701391</td>
+      <td>2.894736</td>
+      <td>1.294262</td>
+      <td>0.458307</td>
+      <td>0.578457</td>
+      <td>0.310630</td>
+    </tr>
+    <tr>
+      <th>NormalPredictor</th>
+      <td>2.139694</td>
+      <td>4.578297</td>
+      <td>1.696845</td>
+      <td>0.497400</td>
+      <td>0.116917</td>
+      <td>0.156717</td>
+    </tr>
+    <tr>
+      <th>NMF</th>
+      <td>2.499246</td>
+      <td>6.246258</td>
+      <td>2.119292</td>
+      <td>0.553087</td>
+      <td>3.484730</td>
+      <td>0.298785</td>
+    </tr>
+    <tr>
+      <th>KNNBasic</th>
+      <td>1.643655</td>
+      <td>2.701632</td>
+      <td>1.275451</td>
+      <td>0.462612</td>
+      <td>35.482900</td>
+      <td>1.732444</td>
+    </tr>
+    <tr>
+      <th>KNNBaseline</th>
+      <td>1.498532</td>
+      <td>2.245621</td>
+      <td>1.156121</td>
+      <td>0.535850</td>
+      <td>32.409142</td>
+      <td>1.718590</td>
+    </tr>
+    <tr>
+      <th>KNNWithMeans</th>
+      <td>1.651630</td>
+      <td>2.727919</td>
+      <td>1.258240</td>
+      <td>0.466116</td>
+      <td>31.944902</td>
+      <td>1.796209</td>
+    </tr>
+    <tr>
+      <th>KNNWithZScore</th>
+      <td>1.666752</td>
+      <td>2.778087</td>
+      <td>1.267275</td>
+      <td>0.468789</td>
+      <td>36.883558</td>
+      <td>2.038430</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">listatests</span> <span class="o">=</span>  <span class="p">[</span><span class="s2">&quot;test_rmse&quot;</span><span class="p">,</span><span class="s2">&quot;test_mse&quot;</span><span class="p">,</span><span class="s2">&quot;test_mae&quot;</span><span class="p">,</span><span class="s2">&quot;test_fcp&quot;</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listatests</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;the best result in&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="s2">&quot;is&quot;</span><span class="p">,</span><span class="n">vertical_concat</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">vertical_concat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>the best result in test_rmse is test_rmse    1.410689
+Name: SVD, dtype: float64
+the best result in test_mse is test_rmse    1.410689
+Name: SVD, dtype: float64
+the best result in test_mae is test_rmse    1.410689
+Name: SVD, dtype: float64
+the best result in test_fcp is test_rmse    1.701391
+Name: SlopeOne, dtype: float64
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Evaluating-Selected-models">Evaluating Selected models<a class="anchor-link" href="#Evaluating-Selected-models">&#182;</a></h2>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We have selected the 4 models with best results in the baseline. Now lets evaluate them doing GridSearchCV and training them to get the results.</p>
+<ul>
+<li>svd = SVD()</li>
+<li>svdp = SVDpp()</li>
+<li>baseonly = BaselineOnly()</li>
+<li>knnbase = KNNBaseline()</li>
+</ul>
 
 </div>
 </div>
@@ -15610,12 +16001,167 @@ Total number of records: 12201
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We will finde the best parameters passing the min_max_features.</p>
-<p>Steps:</p>
+<h3 id="SVD">SVD<a class="anchor-link" href="#SVD">&#182;</a></h3>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Singular Value Decomposition (SVD) is a matrix factorization technique used in recommendation systems to reduce the dimensionality of a user-item matrix and identify latent factors that drive user-item interactions. In essence, SVD represents the original matrix as the product of three matrices: a user matrix, a singular value matrix, and an item matrix. The resulting factors can be used to make personalized recommendations by predicting a user's preference for an item based on their past behavior and the behavior of other similar users.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="SVDpp">SVDpp<a class="anchor-link" href="#SVDpp">&#182;</a></h3>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>SVD++ is an extension of Singular Value Decomposition (SVD) that takes into account implicit feedback in recommendation systems. In addition to the user-item matrix used in SVD, SVD++ also considers a matrix of implicit feedback such as user interactions with items, item attributes, and user preferences. This additional matrix helps capture the influence of user and item biases on the recommendation process, resulting in more accurate and personalized recommendations. SVD++ also includes a regularization term to avoid overfitting and improve generalization. Overall, SVD++ is a more advanced and sophisticated technique for recommendation systems than SVD.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="BaselineOnly">BaselineOnly<a class="anchor-link" href="#BaselineOnly">&#182;</a></h3>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>BaselineOnly is a simple but effective collaborative filtering algorithm used in recommendation systems. It predicts a user's rating for an item by taking into account the overall average rating of all items, the average rating of the user, and the average rating of the item. These three values are used as baseline estimates, and the difference between the actual rating and the baseline estimate is used as the prediction error. BaselineOnly then learns user and item biases that can improve the accuracy of the baseline estimates. The algorithm is simple and computationally efficient, making it a popular choice for recommendation systems with large datasets. However, it may not capture more complex relationships between users and items compared to more advanced techniques such as matrix factorization.BaselineOnly is a simple but effective collaborative filtering algorithm used in recommendation systems. It predicts a user's rating for an item by taking into account the overall average rating of all items, the average rating of the user, and the average rating of the item. These three values are used as baseline estimates, and the difference between the actual rating and the baseline estimate is used as the prediction error. BaselineOnly then learns user and item biases that can improve the accuracy of the baseline estimates. The algorithm is simple and computationally efficient, making it a popular choice for recommendation systems with large datasets. However, it may not capture more complex relationships between users and items compared to more advanced techniques such as matrix factorization.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="KNNBaseline">KNNBaseline<a class="anchor-link" href="#KNNBaseline">&#182;</a></h3>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>KNNBaseline is a collaborative filtering algorithm used in recommendation systems that predicts a user's rating for an item based on the ratings of similar users or similar items. The algorithm is based on k-nearest neighbors, where k is the number of most similar users or items used to make the prediction. KNNBaseline uses a baseline estimate, which is similar to BaselineOnly, to normalize the ratings and improve the accuracy of the predictions. Additionally, KNNBaseline uses a similarity metric, such as cosine similarity or Pearson correlation, to measure the similarity between users or items. The algorithm can be used for both user-based and item-based recommendation systems and has been shown to produce accurate and effective recommendations for a wide range of datasets.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Evaluation-and-training-the-final-selected-SVD-model">Evaluation and training the final selected SVD model<a class="anchor-link" href="#Evaluation-and-training-the-final-selected-SVD-model">&#182;</a></h2>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Standard library imports</span>
+<span class="kn">import</span> <span class="nn">os</span> <span class="c1"># allows access to OS-dependent functionalities</span>
+<span class="kn">import</span> <span class="nn">sys</span> <span class="c1"># to manipulate different parts of the Python runtime environment</span>
+
+<span class="c1"># Get the current working directory</span>
+<span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+
+<span class="c1"># Add the path of the utils directory to sys.path</span>
+<span class="n">utils_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cwd</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;utils&#39;</span><span class="p">))</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">utils_path</span><span class="p">)</span>
+
+<span class="c1"># Utils libraries</span>
+<span class="kn">from</span> <span class="nn">cleaning</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">recommend</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">testing</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">training</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>c:\Users\Chrisitan\AppData\Local\Programs\Python\Python38\lib\site-packages\fuzzywuzzy\fuzz.py:11: UserWarning: Using slow pure-python SequenceMatcher. Install python-Levenshtein to remove this warning
+  warnings.warn(&#39;Using slow pure-python SequenceMatcher. Install python-Levenshtein to remove this warning&#39;)
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>In roder to evaluate, select and train the desired model, we will use 3 different funcions from clening.py, testing.py and testing.py in utils folder:</p>
 <ul>
-<li>Define dictionary of hyperparameters to test using GridSearchCV</li>
-<li>Create GridSearchCV object with NearestNeighbors algorithm and hyperparameters defined in the parametros dictionary</li>
-<li>Return the best hyperparameters found by the grid search</li>
+<li>supervised_prepare_training</li>
+<li>find_best_svd</li>
+<li>train_test_svd</li>
 </ul>
 
 </div>
@@ -15629,7 +16175,7 @@ Total number of records: 12201
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">param_NearestNeighbors</span><span class="p">(</span><span class="n">min_max_features</span><span class="p">)</span> <span class="c1"># from testing.py </span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">supervised_prepare_training</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -15644,7 +16190,21 @@ Total number of records: 12201
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Building-the-model">Building the model<a class="anchor-link" href="#Building-the-model">&#182;</a></h2>
+<p>This function is to:</p>
+<ul>
+<li>Load 'anime.csv' file into a pandas DataFrame object called 'anime'</li>
+<li>Load 'rating.csv.zip' file into a pandas DataFrame object called 'rating'</li>
+<li>Create a new DataFrame 'anime_mapping' that is a copy of the 'anime' DataFrame and remove the 'episodes', 'members', and 'rating' columns</li>
+<li>Filter out all ratings less than or equal to 0 and reset the index of the DataFrame</li>
+<li>Drop the 'index' column and update the DataFrame in-place</li>
+<li>Get the shape of the DataFrame 'ratingdf'</li>
+<li>Set the size to 100,000 and sample from the 'ratingdf' DataFrame based on the proportion of ratings for each score</li>
+<li>This will make sure that the sampled data has roughly the same proportion of ratings for each score as the original data</li>
+<li>Create a new 'Reader' object with the rating scale set to a range between 1 and 10</li>
+<li>Load the sampled data into a 'Dataset' object using the 'load_from_df' method and the 'reader' object</li>
+<li>Saving the table to pickle</li>
+</ul>
+
 </div>
 </div>
 </div>
@@ -15653,10 +16213,49 @@ Total number of records: 12201
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[55]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">model_NearestNeighbors</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span> <span class="c1"># from testing.py </span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">supervised_prepare_training</span><span class="p">()</span> <span class="c1">#utils.cleaning</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
+<pre>&lt;surprise.dataset.DatasetAutoFolds at 0x2cafb97a640&gt;</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">find_best_svd</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -15676,12 +16275,7 @@ Total number of records: 12201
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    The function model_NearestNeighbors builds and trains a 
-    k-Nearest Neighbors model on a given dataset, using specified 
-    parameters. It then saves the indices of the nearest neighbors 
-    to a file and returns them.
-    
+<pre>None
 </pre>
 </div>
 </div>
@@ -15697,22 +16291,14 @@ Total number of records: 12201
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Steps of find_best_svd:</p>
 <ul>
-<li>Build and &quot;train&quot; the model using NearestNeighbors algorithm<ul>
-<li>algorithm: algorithm used to compute the nearest neighbors (‘auto’, ‘ball_tree’, ‘kd_tree’, ‘brute’)</li>
-<li>leaf_size: leaf size passed to BallTree or KDTree</li>
-<li>metric: distance metric used for the tree. Can be 'minkowski', 'euclidean', etc.</li>
-<li>n_neighbors: number of neighbors to use for kneighbors queries</li>
-<li>p: power parameter for the Minkowski metric. When p = 1, this is equivalent to using manhattan_distance</li>
-</ul>
-</li>
-<li>Get the distances and indices of the nearest neighbors<ul>
-<li>distances: array representing the lengths to points, only present if return_distance=True</li>
-<li>indices: indices of the nearest points in the population matrix</li>
-</ul>
-</li>
-<li>Save the model to a file using joblib.dump</li>
-<li>Return the indices of the nearest neighbors</li>
+<li>Define parameter grid for grid search</li>
+<li>Create GridSearchCV object with SVD algorithm</li>
+<li>Fit GridSearchCV object to data</li>
+<li>Print best RMSE and MAE scores, as well as corresponding parameters</li>
+<li>Save model with best parameters</li>
+<li>Save best parameters</li>
 </ul>
 
 </div>
@@ -15723,10 +16309,10 @@ Total number of records: 12201
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[56]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">model_NearestNeighbors</span><span class="p">(</span><span class="n">min_max_features</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">find_best_svd</span><span class="p">()</span> <span class="c1">#utils.testing</span>
 </pre></div>
 
      </div>
@@ -15740,23 +16326,108 @@ Total number of records: 12201
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Best RMSE score: 1.3805614676765472
+Best MAE score: 1.0649921646188643
+Best parameters for RMSE: {&#39;n_factors&#39;: 50, &#39;n_epochs&#39;: 30, &#39;lr_all&#39;: 0.01, &#39;reg_all&#39;: 0.1}
+Best parameters for MAE: {&#39;n_factors&#39;: 50, &#39;n_epochs&#39;: 40, &#39;lr_all&#39;: 0.01, &#39;reg_all&#39;: 0.1}
+</pre>
+</div>
+</div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[56]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>array([[    0,  3445, 10833, ...,   533,  2205,  1041],
-       [    1,  7697,  4530, ...,  9351,   992,  7474],
-       [    2,  3409, 11218, ...,  3136,  1181,  2198],
-       ...,
-       [12198,  7973,  5977, ...,  1850,  8626,  8464],
-       [12199,  1825,   187, ...,  2339,  4352,  4780],
-       [12200,  8769,  9684, ...,  4427,  8354,  2523]], dtype=int64)</pre>
+<pre>&lt;surprise.model_selection.search.GridSearchCV at 0x2cafb917ac0&gt;</pre>
 </div>
 
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">train_test_svd</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Steps of train_test_svd:</p>
+<ul>
+<li>Loads the best hyperparameters for the SVD algorithm that were obtained from grid search</li>
+<li>Loads the dataset from a pickle file using joblib</li>
+<li>Splits the data into training and testing sets with a 80:20 ratio</li>
+<li>Creates an instance of the SVD algorithm with the best hyperparameters obtained from grid search</li>
+<li>Trains the SVD algorithm on the training set using the fit() method</li>
+<li>Generates predictions for the test set using the trained model</li>
+<li>Calculates the RMSE and MAE for the predictions</li>
+<li>Saves the trained model as a pickle file using joblib</li>
+</ul>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">train_test_svd</span><span class="p">()</span> <span class="c1">#utils.training</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>RMSE: 1.3757
+MAE:  1.0561
+RMSE: 1.375737289908081
+MAE: 1.056142242807008
+</pre>
+</div>
 </div>
 
 </div>
@@ -15770,7 +16441,7 @@ Total number of records: 12201
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Get-recommendations">Get recommendations<a class="anchor-link" href="#Get-recommendations">&#182;</a></h2>
+<h2 id="Getting-recommendations">Getting recommendations<a class="anchor-link" href="#Getting-recommendations">&#182;</a></h2>
 </div>
 </div>
 </div>
@@ -15783,12 +16454,8 @@ Total number of records: 12201
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>To get the recommendations we will use the next functions from recommend.py in utils folder:</p>
 <ul>
-<li>print_similar_animes</li>
-<li>finding_the_closest_title</li>
-<li>from_title_to_index</li>
-<li>match_the_score</li>
-<li>from_index_to_title</li>
-<li>create_dict</li>
+<li>sort_it</li>
+<li>create_dict_su</li>
 <li>filtering_and</li>
 <li>filtering_or</li>
 </ul>
@@ -15796,46 +16463,20 @@ Total number of records: 12201
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[57]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">print_similar_animes</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">sort_it</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
 </pre></div>
 
      </div>
 </div>
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    This function takes a user input anime name query and returns a list of recommended anime similar to the query.
-    It uses a pre-trained model and a dataset of anime information to find recommendations. 
-    If the user query has any misspelling, the function tries to find the closest match to 
-    the query and provides recommendations based on that.
-    
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -15845,26 +16486,56 @@ Total number of records: 12201
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Steps of print_similar_animes:</p>
+<p>Steps of sort_it:</p>
 <ul>
-<li>Load pre-trained k-Nearest Neighbors model from file</li>
-<li>Load anime data from CSV file</li>
-<li>Find the closest title in the anime dataset to the user's query</li>
-<li>If the distance score is 100, the user's query is an exact match for a title in the dataset<ul>
-<li>Get the index of the exact match in the dataset</li>
-<li>Get the indices of the k-nearest neighbors of the exact match</li>
-<li>Remove the index of the exact match from the array of neighbors</li>
-<li>For each neighbor index, get the name of the anime and add it to the list of recommendations</li>
-<li>Return the list of recommendations</li>
+<li>Load the pre-trained SVD model</li>
+<li>Load the anime dataframe</li>
+<li>Apply the SVD model to estimate the score for each anime</li>
+<li>Sort the dataframe by the estimated score in descending order and drop the anime_id column</li>
+<li>Create a blank index for the dataframe</li>
+<li>Set the blank index to the dataframe</li>
+<li>Return the sorted dataframe</li>
+</ul>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">create_dict_su</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Steps of create_dict_su:</p>
+<ul>
+<li>get the final dataframe and the parameters for filtering and number of recommendations to show</li>
+<li>check which method was used to filter the recommendations, 'or' or 'and'<ul>
+<li>filter the dataframe using the OR logic and the given genres and types</li>
+<li>filter the dataframe using the AND logic and the given genres and types</li>
+<li>raise an error if an invalid filter type was given</li>
 </ul>
 </li>
-<li>If the distance score is not 100, the user's query is a misspelling or a partial match<ul>
-<li>Ask the user if they meant the closest title found in the dataset</li>
-<li>Get the index of the closest title in the dataset</li>
-<li>Get the indices of the k-nearest neighbors of the closest title</li>
-<li>Remove the index of the closest title from the array of neighbors</li>
-<li>For each neighbor index, get the name of the anime and add it to the list of recommendations</li>
-<li>Return the list of recommendations</li>
+<li>select the top n recommendations from the filtered dataframe</li>
+<li>if the filtered dataframe is empty, print a message<ul>
+<li>convert the filtered dataframe to a dictionary</li>
+<li>return the dictionary of recommendations</li>
 </ul>
 </li>
 </ul>
@@ -15877,279 +16548,7 @@ Total number of records: 12201
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[58]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">finding_the_closest_title</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    Function that takes in a string title and a pandas DataFrame df as input arguments, 
-    and returns a tuple containing the closest matching title to the input title 
-    and the Levenshtein distance score between the closest title and the input title.
-    in other words, the function returns the most similar title to the name a user typed
-    
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Steps of finding_the_closest_title:</p>
-<ul>
-<li>This function takes a string <code>title</code> and a pandas DataFrame <code>df</code> as input arguments.</li>
-<li>Create a new variable <code>anime</code> to hold the DataFrame <code>df</code> for readability.</li>
-<li>Calculate the Levenshtein distance between each title in the 'name' column of the DataFrame and the input <code>title</code>.</li>
-<li>The <code>match_the_score</code> function is used to calculate the distance score.</li>
-<li>The <code>enumerate</code> function adds an index number to each distance score.</li>
-<li>Sort the list of (index, distance score) tuples in descending order by the distance score. sorted_levenshtein_scores = sorted(levenshtein_scores, key=lambda x: x[1], reverse=True)</li>
-<li>Get the closest matching title to the input <code>title</code> by using the index of the highest scoring match.</li>
-<li>The <code>from_index_to_title</code> function is used to return the title string from the DataFrame given an index.</li>
-<li>Get the Levenshtein distance score of the closest matching title.</li>
-<li>Return a tuple containing the closest matching title and its Levenshtein distance score.</li>
-</ul>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[59]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">from_title_to_index</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span> <span class="c1"># just one step</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    Function to return the matched index number of the anime name
-    
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[60]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">match_the_score</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span> <span class="c1"># just one step</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    Function to find the closest title, It uses Levenshtein Distance to calculate the differences between sequences
-    
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[61]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">from_index_to_title</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span> <span class="c1"># just one step</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    Function to return the anime name that mtches de index number
-    
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>The information resulted is pass to:</p>
-<ul>
-<li>create_dict</li>
-<li>filtering_and</li>
-<li>filtering_or</li>
-</ul>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[62]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">create_dict</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-    The create_dict() function takes in four arguments - names (list of anime names to search for), 
-    gen (list of genres to filter by), typ (list of anime types to filter by), 
-    method (string indicating whether to filter by &#34;or&#34; or &#34;and&#34;), 
-    and an optional n parameter indicating the maximum number of results to return. 
-    It reads in a pre-processed anime DataFrame, filters it based on the input criteria, 
-    and returns a dictionary of the resulting rows. If there are no matches, 
-    it returns a string indicating it.
-    
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Steps of create_dict:</p>
-<ul>
-<li>This function takes in a list of anime titles <code>names</code>, lists of <code>gen</code>res and <code>typ</code>es, a filtering method <code>method</code>, and an optional number of results <code>n</code>.</li>
-<li>Load the anime dataframe from a CSV file using pandas.</li>
-<li>Filter the anime dataframe to only include titles that match those in the input list <code>names</code>.</li>
-<li>Remove the 'anime_id' and 'members' columns from the resulting dataframe.</li>
-<li>Reset the index of the resulting dataframe.</li>
-<li>Apply a filtering method based on the input <code>method</code>.</li>
-<li>If 'or', use the <code>filtering_or()</code> function to filter the dataframe.</li>
-<li>If 'and', use the <code>filtering_and()</code> function to filter the dataframe.</li>
-<li>If <code>method</code> is neither 'or' nor 'and', raise a ValueError.</li>
-<li>Drop any duplicate titles from the resulting dataframe.</li>
-<li>Limit the resulting dataframe to the first <code>n</code> rows.</li>
-<li>If the resulting dataframe is empty, print an error message and return None.</li>
-<li>Otherwise, convert the resulting dataframe to a dictionary and return the dictionary.</li>
-</ul>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[63]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">filtering_and</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
@@ -16221,7 +16620,7 @@ Total number of records: 12201
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[64]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">filtering_or</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
@@ -16287,17 +16686,17 @@ Total number of records: 12201
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[69]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># We can get the recommendation as a dictionary</span>
-<span class="c1"># We selec the name of the anime we want to find similitudes</span>
-<span class="c1"># Then the genre we want</span>
+<span class="c1"># We input the user ID for we want the recommendations</span>
+<span class="c1"># Then the genre we want (or write &quot;All&quot; if we shoose &quot;or&quot; filter)</span>
 <span class="c1"># Then the type we want (or write &quot;All&quot; if we shoose &quot;or&quot; filter)</span>
 <span class="c1"># We must select a type or filtering, &quot;or&quot;/&quot;and&quot; </span>
 <span class="c1"># Then the number of suggestions we have(we might get less if there not so many o none if there is no matches)</span>
 
-<span class="n">create_dict</span><span class="p">(</span><span class="n">print_similar_animes</span><span class="p">(</span><span class="s2">&quot;Naruto&quot;</span><span class="p">),[</span><span class="s2">&quot;Shounen&quot;</span><span class="p">],[</span><span class="s2">&quot;TV&quot;</span><span class="p">],</span><span class="s2">&quot;or&quot;</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">create_dict_su</span><span class="p">(</span><span class="n">sort_it</span><span class="p">(</span><span class="mi">25000</span><span class="p">),[</span><span class="s2">&quot;Shounen&quot;</span><span class="p">],[</span><span class="s2">&quot;TV&quot;</span><span class="p">],</span><span class="s2">&quot;or&quot;</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -16311,53 +16710,164 @@ Total number of records: 12201
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>I guess you misspelled the name
- Are you looking similitudes for the anime named <span class="ansi-bold">naruto</span>? 
-Here are the recommendations:
-or
-</pre>
-</div>
-</div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[69]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>[{&#39;name&#39;: &#39;eyeshield 21&#39;,
-  &#39;english_title&#39;: &#39;Eyeshield 21&#39;,
-  &#39;japanses_title&#39;: &#39;アイシールド21&#39;,
+<pre>[{&#39;name&#39;: &#39;Fullmetal Alchemist: Brotherhood&#39;,
+  &#39;english_title&#39;: &#39;Fullmetal Alchemist: Brotherhood&#39;,
+  &#39;japanses_title&#39;: &#39;鋼の錬金術師 FULLMETAL ALCHEMIST&#39;,
   &#39;genre&#39;: &#39;Shounen&#39;,
+  &#39;type&#39;: &#39;TV&#39;,
+  &#39;source&#39;: &#39;Manga&#39;,
+  &#39;duration&#39;: &#39;24 min per ep&#39;,
+  &#39;episodes&#39;: &#39;64&#39;,
+  &#39;rating&#39;: &#39;R - 17+ (violence &amp; profanity)&#39;,
+  &#39;score&#39;: 9.11,
+  &#39;rank&#39;: 1.0,
+  &#39;members&#39;: 793665,
+  &#39;synopsis&#39;: &#39;After a horrific alchemy experiment goes wrong in the Elric household, brothers Edward and Alphonse are left in a catastrophic new reality. Ignoring the alchemical principle banning human transmutation, the boys attempted to bring their recently deceased mother back to life. Instead, they suffered brutal personal loss: Alphonse\&#39;s body disintegrated while Edward lost a leg and then sacrificed an arm to keep Alphonse\&#39;s soul in the physical realm by binding it to a hulking suit of armor.\r\n\r\nThe brothers are rescued by their neighbor Pinako Rockbell and her granddaughter Winry. Known as a bio-mechanical engineering prodigy, Winry creates prosthetic limbs for Edward by utilizing &#34;automail,&#34; a tough, versatile metal used in robots and combat armor. After years of training, the Elric brothers set off on a quest to restore their bodies by locating the Philosopher\&#39;s Stone—a powerful gem that allows an alchemist to defy the traditional laws of Equivalent Exchange.\r\n\r\nAs Edward becomes an infamous alchemist and gains the nickname &#34;Fullmetal,&#34; the boys\&#39; journey embroils them in a growing conspiracy that threatens the fate of the world.\r\n\r\n[Written by MAL Rewrite]&#39;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/1208/94745l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 9.240005320221256},
+ {&#39;name&#39;: &#39;Gintama°&#39;,
+  &#39;english_title&#39;: &#39;Gintama°&#39;,
+  &#39;japanses_title&#39;: &#39;銀魂°&#39;,
+  &#39;genre&#39;: &#39;Shounen&#39;,
+  &#39;type&#39;: &#39;TV&#39;,
+  &#39;source&#39;: &#39;Manga&#39;,
+  &#39;duration&#39;: &#39;24 min per ep&#39;,
+  &#39;episodes&#39;: &#39;51&#39;,
+  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;,
+  &#39;score&#39;: 9.07,
+  &#39;rank&#39;: 4.0,
+  &#39;members&#39;: 114262,
+  &#39;synopsis&#39;: &#34;Gintoki, Shinpachi, and Kagura return as the fun-loving but broke members of the Yorozuya team! Living in an alternate-reality Edo, where swords are prohibited and alien overlords have conquered Japan, they try to thrive on doing whatever work they can get their hands on. However, Shinpachi and Kagura still haven&#39;t been paid... Does Gin-chan really spend all that cash playing pachinko?\r\n\r\nMeanwhile, when Gintoki drunkenly staggers home one night, an alien spaceship crashes nearby. A fatally injured crew member emerges from the ship and gives Gintoki a strange, clock-shaped device, warning him that it is incredibly powerful and must be safeguarded. Mistaking it for his alarm clock, Gintoki proceeds to smash the device the next morning and suddenly discovers that the world outside his apartment has come to a standstill. With Kagura and Shinpachi at his side, he sets off to get the device fixed; though, as usual, nothing is ever that simple for the Yorozuya team.\r\n\r\nFilled with tongue-in-cheek humor and moments of heartfelt emotion, Gintama&#39;s fourth season finds Gintoki and his friends facing both their most hilarious misadventures and most dangerous crises yet.\r\n\r\n[Written by MAL Rewrite]&#34;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/3/72078l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 9.197089662352965},
+ {&#39;name&#39;: &#39;Haikyuu!!: Karasuno Koukou VS Shiratorizawa Gakuen Koukou&#39;,
+  &#39;english_title&#39;: &#39;Haikyuu!! Karasuno Koukou vs. Shiratorizawa Gakuen Koukou&#39;,
+  &#39;japanses_title&#39;: &#39;ハイキュー!! 烏野高校 VS 白鳥沢学園高校&#39;,
+  &#39;genre&#39;: &#39;Shounen&#39;,
+  &#39;type&#39;: &#39;TV&#39;,
+  &#39;source&#39;: &#39;Manga&#39;,
+  &#39;duration&#39;: &#39;24 min per ep&#39;,
+  &#39;episodes&#39;: &#39;10&#39;,
+  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;,
+  &#39;score&#39;: 8.78,
+  &#39;rank&#39;: 35.0,
+  &#39;members&#39;: 93351,
+  &#39;synopsis&#39;: &#39;After the victory against Aoba Jousai High, Karasuno High School, once called “a fallen powerhouse, a crow that can’t fly,” has finally reached the climax of the heated Spring tournament. Now, to advance to nationals, the Karasuno team has to defeat the powerhouse Shiratorizawa Academy. Karasuno’s greatest hurdle is their adversary’s ace, Wakatoshi Ushijima, the number one player in the Miyagi Prefecture, and one of the country’s top three aces.\r\n\r\nOnly the strongest team will make it to the national tournament. Since this match is the third-year players’ last chance to qualify for nationals, Karasuno has to use everything they learned during the training camp and prior matches to attain victory. Filled with restlessness and excitement, both teams are determined to come out on top in the third season of Haikyuu!!.\r\n\r\n[Written by MAL Rewrite]&#39;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/7/81992l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 9.191643739956707},
+ {&#39;name&#39;: &#39;Hunter x Hunter (2011)&#39;,
+  &#39;english_title&#39;: &#39;Hunter x Hunter (2011)&#39;,
+  &#39;japanses_title&#39;: &#39;HUNTER×HUNTER（ハンター×ハンター）&#39;,
+  &#39;genre&#39;: &#39;Shounen&#39;,
+  &#39;type&#39;: &#39;TV&#39;,
   &#39;source&#39;: &#39;Manga&#39;,
   &#39;duration&#39;: &#39;23 min per ep&#39;,
-  &#39;episodes&#39;: 145.0,
-  &#39;score&#39;: 7.92,
-  &#39;rank&#39;: 702.0,
-  &#39;synopsis&#39;: &#39;Shy, reserved, and small-statured, Deimon High School student Sena Kobayakawa is the perfect target for bullies. However, as a result of running errands throughout his life, Sena has become agile and developed a skill for avoiding crowds of people. After the cunning Youichi Hiruma—captain of the Deimon Devil Bats football team—witnesses Sena\&#39;s rapid legs in motion, he coerces the timid boy into joining his squad. As Hiruma wants to conceal Sena\&#39;s identity from other clubs, Sena is forced to hide under the visored helmet of &#34;Eyeshield 21,&#34; a mysterious running back wearing the number 21 jersey. The legendary Eyeshield 21 can supposedly run at the speed of light and has achieved remarkable feats in the United States during his time at the Notre Dame College. Accustomed to avoiding his problems in the past, Sena\&#39;s specialty might just help him become the new secret weapon of the Deimon Devil Bats. As he interacts with his teammates, Sena gradually gains more self-confidence and forges valuable bonds along the way. [Written by MAL Rewrite]&#39;,
-  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/12/66961l.jpg&#39;,
-  &#39;type&#39;: &#39;TV&#39;,
-  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;},
- {&#39;name&#39;: &#39;one piece&#39;,
-  &#39;english_title&#39;: &#39;One Piece&#39;,
-  &#39;japanses_title&#39;: &#39;ONE PIECE&#39;,
+  &#39;episodes&#39;: &#39;148&#39;,
+  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;,
+  &#39;score&#39;: 9.04,
+  &#39;rank&#39;: 9.0,
+  &#39;members&#39;: 425855,
+  &#39;synopsis&#39;: &#34;Hunters devote themselves to accomplishing hazardous tasks, all from traversing the world&#39;s uncharted territories to locating rare items and monsters. Before becoming a Hunter, one must pass the Hunter Examination—a high-risk selection process in which most applicants end up handicapped or worse, deceased.\r\n\r\nAmbitious participants who challenge the notorious exam carry their own reason. What drives 12-year-old Gon Freecss is finding Ging, his father and a Hunter himself. Believing that he will meet his father by becoming a Hunter, Gon takes the first step to walk the same path.\r\n\r\nDuring the Hunter Examination, Gon befriends the medical student Leorio Paladiknight, the vindictive Kurapika, and ex-assassin Killua Zoldyck. While their motives vastly differ from each other, they band together for a common goal and begin to venture into a perilous world.\r\n\r\n[Written by MAL Rewrite]&#34;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/1337/99013l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 9.166091462407456},
+ {&#39;name&#39;: &#39;Gintama&amp;#039;: Enchousen&#39;,
+  &#39;english_title&#39;: &#34;Gintama&#39;: Enchousen&#34;,
+  &#39;japanses_title&#39;: &#34;銀魂&#39; 延長戦&#34;,
   &#39;genre&#39;: &#39;Shounen&#39;,
-  &#39;source&#39;: &#39;Manga&#39;,
-  &#39;duration&#39;: &#39;24 min&#39;,
-  &#39;episodes&#39;: 2.0,
-  &#39;score&#39;: 8.68,
-  &#39;rank&#39;: 57.0,
-  &#39;synopsis&#39;: &#39;Gol D. Roger was known as the &#34;Pirate King,&#34; the strongest and most infamous being to have sailed the Grand Line. The capture and execution of Roger by the World Government brought a change throughout the world. His last words before his death revealed the existence of the greatest treasure in the world, One Piece. It was this revelation that brought about the Grand Age of Pirates, men who dreamed of finding One Piece—which promises an unlimited amount of riches and fame—and quite possibly the pinnacle of glory and the title of the Pirate King. Enter Monkey D. Luffy, a 17-year-old boy who defies your standard definition of a pirate. Rather than the popular persona of a wicked, hardened, toothless pirate ransacking villages for fun, Luffy\&#39;s reason for being a pirate is one of pure wonder: the thought of an exciting adventure that leads him to intriguing people and ultimately, the promised treasure. Following in the footsteps of his childhood hero, Luffy and his crew travel across the Grand Line, experiencing crazy adventures, unveiling dark mysteries and battling strong enemies, all in order to reach the most coveted of all fortunes—One Piece. [Written by MAL Rewrite]&#39;,
-  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/6/73245l.jpg&#39;,
   &#39;type&#39;: &#39;TV&#39;,
-  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;}]</pre>
+  &#39;source&#39;: &#39;Manga&#39;,
+  &#39;duration&#39;: &#39;24 min per ep&#39;,
+  &#39;episodes&#39;: &#39;13&#39;,
+  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;,
+  &#39;score&#39;: 9.03,
+  &#39;rank&#39;: 10.0,
+  &#39;members&#39;: 81109,
+  &#39;synopsis&#39;: &#34;While Gintoki Sakata was away, the Yorozuya found themselves a new leader: Kintoki, Gintoki&#39;s golden-haired doppelganger. In order to regain his former position, Gintoki will need the help of those around him, a troubling feat when no one can remember him! Between Kintoki and Gintoki, who will claim the throne as the main character?\r\n\r\nIn addition, Yorozuya make a trip back down to red-light district of Yoshiwara to aid an elderly courtesan in her search for her long-lost lover. Although the district is no longer in chains beneath the earth&#39;s surface, the trio soon learn of the tragic backstories of Yoshiwara&#39;s inhabitants that still haunt them. With flashback after flashback, this quest has Yorozuya witnessing everlasting love and protecting it as best they can with their hearts and souls.\r\n\r\n[Written by MAL Rewrite]&#34;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/1452/123686l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 9.16261420396817},
+ {&#39;name&#39;: &#39;Gintama&#39;,
+  &#39;english_title&#39;: &#39;Gintama&#39;,
+  &#39;japanses_title&#39;: &#39;銀魂&#39;,
+  &#39;genre&#39;: &#39;Shounen&#39;,
+  &#39;type&#39;: &#39;TV&#39;,
+  &#39;source&#39;: &#39;Manga&#39;,
+  &#39;duration&#39;: &#39;24 min per ep&#39;,
+  &#39;episodes&#39;: &#39;201&#39;,
+  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;,
+  &#39;score&#39;: 8.94,
+  &#39;rank&#39;: 17.0,
+  &#39;members&#39;: 336376,
+  &#39;synopsis&#39;: &#39;Edo is a city that was home to the vigor and ambition of samurai across the country. However, following feudal Japan\&#39;s surrender to powerful aliens known as the &#34;Amanto,&#34; those aspirations now seem unachievable. With the once-influential shogunate rebuilt as a puppet government, a new law is passed that promptly prohibits all swords in public. \r\n\r\nEnter Gintoki Sakata, an eccentric silver-haired man who always carries around a wooden sword and maintains his stature as a samurai despite the ban. As the founder of Yorozuya, a small business for odd jobs, Gintoki often embarks on endeavors to help other people—though usually in rather strange and unforeseen ways. \r\n\r\nAssisted by Shinpachi Shimura, a boy with glasses supposedly learning the way of the samurai; Kagura, a tomboyish girl with superhuman strength and an endless appetite; and Sadaharu, their giant pet dog who loves biting on people\&#39;s heads, the Yorozuya encounter anything from alien royalty to scuffles with local gangs in the ever-changing world of Edo.\r\n\r\n[Written by MAL Rewrite]&#39;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/10/73274l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 9.150980537216345},
+ {&#39;name&#39;: &#39;Gintama&amp;#039;&#39;,
+  &#39;english_title&#39;: &#34;Gintama&#39;&#34;,
+  &#39;japanses_title&#39;: &#34;銀魂&#39;&#34;,
+  &#39;genre&#39;: &#39;Shounen&#39;,
+  &#39;type&#39;: &#39;TV&#39;,
+  &#39;source&#39;: &#39;Manga&#39;,
+  &#39;duration&#39;: &#39;24 min per ep&#39;,
+  &#39;episodes&#39;: &#39;51&#39;,
+  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;,
+  &#39;score&#39;: 9.04,
+  &#39;rank&#39;: 8.0,
+  &#39;members&#39;: 151266,
+  &#39;synopsis&#39;: &#34;After a one-year hiatus, Shinpachi Shimura returns to Edo, only to stumble upon a shocking surprise: Gintoki and Kagura, his fellow Yorozuya members, have become completely different characters! Fleeing from the Yorozuya headquarters in confusion, Shinpachi finds that all the denizens of Edo have undergone impossibly extreme changes, in both appearance and personality. Most unbelievably, his sister Otae has married the Shinsengumi chief and shameless stalker Isao Kondou and is pregnant with their first child.\r\n\r\nBewildered, Shinpachi agrees to join the Shinsengumi at Otae and Kondou&#39;s request and finds even more startling transformations afoot both in and out of the ranks of the the organization. However, discovering that Vice Chief Toushirou Hijikata has remained unchanged, Shinpachi and his unlikely Shinsengumi ally set out to return the city of Edo to how they remember it.\r\n\r\nWith even more dirty jokes, tongue-in-cheek parodies, and shameless references, Gintama&#39; follows the Yorozuya team through more of their misadventures in the vibrant, alien-filled world of Edo.\r\n\r\n[Written by MAL Rewrite]&#34;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/4/50361l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 9.096140703215436},
+ {&#39;name&#39;: &#39;Aria The Origination&#39;,
+  &#39;english_title&#39;: &#39;Aria the Origination&#39;,
+  &#39;japanses_title&#39;: &#39;ARIA The ORIGINATION&#39;,
+  &#39;genre&#39;: &#39;Shounen&#39;,
+  &#39;type&#39;: &#39;TV&#39;,
+  &#39;source&#39;: &#39;Manga&#39;,
+  &#39;duration&#39;: &#39;24 min per ep&#39;,
+  &#39;episodes&#39;: &#39;13&#39;,
+  &#39;rating&#39;: &#39;G - All Ages&#39;,
+  &#39;score&#39;: 8.49,
+  &#39;rank&#39;: 130.0,
+  &#39;members&#39;: 56162,
+  &#39;synopsis&#39;: &#39;In the 24th century on the planet Aqua, three girls—Akari Mizunashi, Alice Carroll, and Aika S. Granzchesta—continue to work hard toward achieving their goal of becoming Prima Undines: professional tour guide gondoliers. Luckily, the girls have the guidance of the three best Prima Undines in Neo-Venezia—Alicia Florence, Athena Glory, and Akira E. Ferrari—who are known as the &#34;Water Fairies&#34; in honor of their skill. With their help, the young apprentices train hard and work to overcome any situations that they find themselves in.\r\n\r\nAria The Origination follows the hardships and daily lives of these three young girls, who are doing their best to improve as tour gondoliers in Neo-Venezia, a terraformed replica of Venice.\r\n\r\n[Written by MAL Rewrite]&#39;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/1394/129606l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 8.91693800648121},
+ {&#39;name&#39;: &#39;Hajime no Ippo&#39;,
+  &#39;english_title&#39;: &#39;Hajime no Ippo&#39;,
+  &#39;japanses_title&#39;: &#39;はじめの一歩 THE FIGHTING!&#39;,
+  &#39;genre&#39;: &#39;Shounen&#39;,
+  &#39;type&#39;: &#39;TV&#39;,
+  &#39;source&#39;: &#39;Manga&#39;,
+  &#39;duration&#39;: &#39;23 min per ep&#39;,
+  &#39;episodes&#39;: &#39;75&#39;,
+  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;,
+  &#39;score&#39;: 8.75,
+  &#39;rank&#39;: 41.0,
+  &#39;members&#39;: 157670,
+  &#39;synopsis&#39;: &#34;In his father&#39;s absence, teenager Ippo Makunouchi works hard to help his mother run her fishing boat rental business. Ippo&#39;s timid nature, his lack of sleep, and the sea smell make him an easy target for relentless bullies who leave him bruised and beaten on a daily basis. Mamoru Takamura, an up-and-coming boxer, rescues Ippo from a violent after-school incident and takes him back to the Kamogawa Boxing Gym for recovery. Takamura and his fellow boxers, Masaru Aoki and Tatsuya Kimura, are stunned by Ippo&#39;s powerful punches—a result of strong muscles developed through years serving his physically taxing family business. \r\n\r\nFollowing brief training under Takamura, Ippo impresses the other boxers in a practice match against prodigy Ichirou Miyata. He gains a rival in Miyata and a coach in Genji Kamogawa, the gym owner and a former boxer himself. As Ippo takes the first steps in his official boxing career, he faces off against a series of challenging opponents, each more powerful than the last. Victory, loss, and a cycle of dedicated training await Ippo on his journey to achieve greatness. With his tough body and unstoppable fighting spirit, the kind young man seeks to take on the world.\r\n\r\n[Written by MAL Rewrite]&#34;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/4/86334l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 8.91608397569709},
+ {&#39;name&#39;: &#39;Shigatsu wa Kimi no Uso&#39;,
+  &#39;english_title&#39;: &#39;Shigatsu wa Kimi no Uso&#39;,
+  &#39;japanses_title&#39;: &#39;四月は君の嘘&#39;,
+  &#39;genre&#39;: &#39;Shounen&#39;,
+  &#39;type&#39;: &#39;TV&#39;,
+  &#39;source&#39;: &#39;Manga&#39;,
+  &#39;duration&#39;: &#39;22 min per ep&#39;,
+  &#39;episodes&#39;: &#39;22&#39;,
+  &#39;rating&#39;: &#39;PG-13 - Teens 13 or older&#39;,
+  &#39;score&#39;: 8.65,
+  &#39;rank&#39;: 68.0,
+  &#39;members&#39;: 416397,
+  &#39;synopsis&#39;: &#39;Kousei Arima is a child prodigy known as the &#34;Human Metronome&#34; for playing the piano with precision and perfection. Guided by a strict mother and rigorous training, Kousei dominates every competition he enters, earning the admiration of his musical peers and praise from audiences. When his mother suddenly passes away, the subsequent trauma makes him unable to hear the sound of a piano, and he never takes the stage thereafter.\r\n\r\nNowadays, Kousei lives a quiet and unassuming life as a junior high school student alongside his friends Tsubaki Sawabe and Ryouta Watari. While struggling to get over his mother\&#39;s death, he continues to cling to music. His monochrome life turns upside down the day he encounters the eccentric violinist Kaori Miyazono, who thrusts him back into the spotlight as her accompanist. Through a little lie, these two young musicians grow closer together as Kaori tries to fill Kousei\&#39;s world with color.\r\n\r\n[Written by MAL Rewrite]&#39;,
+  &#39;cover&#39;: &#39;https://cdn.myanimelist.net/images/anime/3/67177l.jpg&#39;,
+  &#39;Estimate_Score&#39;: 8.86332360872485}]</pre>
 </div>
 
 </div>
