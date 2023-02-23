@@ -372,7 +372,7 @@ def features_user_based_unsupervised(df_merged):
     features = features.dropna(axis = 0, how ='any')
     # Drop rows with NaN values (user has not given any ratings)
     
-    # There are users who has rated only once. So we should think if we want to consider only users with a minimin ratings as threshold value. Let's say 50.
+    # There are users who has rated only once. So we should think if we want to consider only users with a minimin ratings as threshold value.
     counts = features['user_id'].value_counts()
     features = features[features['user_id'].isin(counts[counts >= 200].index)]
     # Only consider users with at least 200 ratings
@@ -444,9 +444,16 @@ def supervised_rating_cleaning(rating):
     then resets the index of the resulting DataFrame. It returns the 
     cleaned DataFrame.
     '''
+    # selects only those rows from the 'rating' DataFrame where the value of the 'rating' column is greater than 0. The resulting DataFrame is assigned to the variable 'ratingdf'.
     ratingdf = rating[rating.rating>0]
+
+    # resets the index of the 'ratingdf' DataFrame. This means that the current index is replaced with a sequential index starting from 0, and a new column called 'index' is added to the DataFrame to store the old index values.
     ratingdf = ratingdf.reset_index()
+
+    # drops the 'index' column from the 'ratingdf' DataFrame. The 'axis=1' argument specifies that the column should be dropped, and 'inplace=True' means that the changes should be made to the DataFrame in place (i.e., the DataFrame is modified directly rather than creating a copy).
     ratingdf.drop('index', axis=1,inplace=True)
+
+    # returns the modified 'ratingdf' DataFrame as the output of the function.
     return ratingdf
 
 

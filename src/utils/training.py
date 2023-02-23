@@ -135,33 +135,40 @@ def matrix_creation_and_training(df_pivot):
 
 
 def train_test_svd():
-        '''
-        In this code, the data is split into training and testing sets using 
-        the train_test_split() function from surprise library. Then, an instance 
-        of the SVD algorithm is created with the best parameters obtained 
-        from the grid search, and it is trained on the training set using the fit() method.
-        '''
-        # Load model with best parameters
-        gs = joblib.load(saved_models_folder + "/" + "SVD_model_best_params.pkl")
-        data = joblib.load(processed_data + "/" + "data_reader_sample.pkl")    
+    '''
+    In this code, the data is split into training and testing sets using 
+    the train_test_split() function from surprise library. Then, an instance 
+    of the SVD algorithm is created with the best parameters obtained 
+    from the grid search, and it is trained on the training set using the fit() method.
+    '''
+    # Loads the best hyperparameters for the SVD algorithm that were obtained from grid search
+    gs = joblib.load(saved_models_folder + "/" + "SVD_model_best_params.pkl")
 
-        # Split data into training and testing sets
-        trainset, testset = train_test_split(data, test_size=0.2)       
-        # Train SVD algorithm on training set with best parameters
-        best_params = SVD(n_factors=gs.best_params['rmse']['n_factors'], 
-                n_epochs=gs.best_params['rmse']['n_epochs'], 
-                lr_all=gs.best_params['rmse']['lr_all'], 
-                reg_all=gs.best_params['rmse']['reg_all'])
-        best_params.fit(trainset)       
-        # Make predictions on testing set
-        predictions = best_params.test(testset) 
-        # Calculate RMSE and MAE
-        rmse = accuracy.rmse(predictions)
-        mae = accuracy.mae(predictions) 
-        print("RMSE:", rmse)
-        print("MAE:", mae)      
-        # # Serialización del modelo
-        import pickle
-        joblib.dump(best_params,saved_models_folder + "/" + "SVD_new_model.pkl")
+    # Loads the dataset from a pickle file using joblib
+    data = joblib.load(processed_data + "/" + "data_reader_sample.pkl")    
+
+    # Splits the data into training and testing sets with a 80:20 ratio
+    trainset, testset = train_test_split(data, test_size=0.2)       
+
+    # Creates an instance of the SVD algorithm with the best hyperparameters obtained from grid search
+    best_params = SVD(n_factors=gs.best_params['rmse']['n_factors'], 
+                    n_epochs=gs.best_params['rmse']['n_epochs'], 
+                    lr_all=gs.best_params['rmse']['lr_all'], 
+                    reg_all=gs.best_params['rmse']['reg_all'])
+
+    # Trains the SVD algorithm on the training set using the fit() method
+    best_params.fit(trainset)       
+
+    # Generates predictions for the test set using the trained model
+    predictions = best_params.test(testset) 
+
+    # Calculates the RMSE and MAE for the predictions
+    rmse = accuracy.rmse(predictions)
+    mae = accuracy.mae(predictions) 
+    print("RMSE:", rmse)
+    print("MAE:", mae)      
+
+    # Saves the trained model as a pickle file using joblib
+    joblib.dump(best_params,saved_models_folder + "/" + "SVD_new_model.pkl")
 
 

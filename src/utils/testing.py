@@ -107,13 +107,14 @@ def param_NearestNeighbors(df):
 ##############################################################
 ##############################################################
 
-'''
-This function evaluates the SVD algorithm using GridSearchCV to find 
-the best combination of hyperparameters based on the provided parameter grid. 
-It prints the best RMSE and MAE scores and their corresponding parameters, 
-and returns a results dataframe.
-'''
+
 def evaluate_svd_model(data):
+    '''
+    This function evaluates the SVD algorithm using GridSearchCV to find 
+    the best combination of hyperparameters based on the provided parameter grid. 
+    It prints the best RMSE and MAE scores and their corresponding parameters, 
+    and returns a results dataframe.
+    '''
     # Define parameter grid for grid search
     param_grid = {'n_factors': [50, 100, 150], 
                 'n_epochs': [20, 30, 40], 
@@ -132,20 +133,22 @@ def evaluate_svd_model(data):
     print("Best parameters for RMSE:", gs.best_params['rmse'])
     print("Best parameters for MAE:", gs.best_params['mae'])
 
+    # return the model
     return gs
 
 
 
-'''
-defines a parameter grid for hyperparameter tuning in a collaborative filtering algorithm.
-Then create a GridSearchCV object with the SVD algorithm and a parameter grid consisting 
-of a range of hyperparameters. The GridSearchCV function then performs a grid search on 
-yhe parameter grid to find the best combination of hyperparameters that minimizes the 
-RMSE and MAE scores. The best RMSE and MAE scores and the corresponding parameters 
-are printed out.
-'''
+
 
 def find_best_svd():
+    '''
+    defines a parameter grid for hyperparameter tuning in a collaborative filtering algorithm.
+    Then create a GridSearchCV object with the SVD algorithm and a parameter grid consisting 
+    of a range of hyperparameters. The GridSearchCV function then performs a grid search on 
+    yhe parameter grid to find the best combination of hyperparameters that minimizes the 
+    RMSE and MAE scores. The best RMSE and MAE scores and the corresponding parameters 
+    are printed out.
+    '''
     from surprise import SVD
     from surprise.model_selection import GridSearchCV
     data = joblib.load(processed_data + "/" + "data_reader_sample.pkl")

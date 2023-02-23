@@ -490,13 +490,14 @@ def create_dict_su(final_df,gen,typ,method,n=100):
 
 
 
-'''
-The function takes an anime ID and uses a trained Singular Value Decomposition (SVD) 
-algorithm to predict the estimated score of all other animes in the dataset. 
-The function then sorts the predicted scores in descending order and returns
-the resulting dataframe with anime names and their predicted scores.
-'''
+
 def sort_it(id):
+    '''
+    The function takes an anime ID and uses a trained Singular Value Decomposition (SVD) 
+    algorithm to predict the estimated score of all other animes in the dataset. 
+    The function then sorts the predicted scores in descending order and returns
+    the resulting dataframe with anime names and their predicted scores.
+    '''
     # Load the pre-trained SVD model
     algo = joblib.load(saved_models_folder + "/" + "SVD_new_model.pkl")
     
