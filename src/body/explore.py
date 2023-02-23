@@ -46,3 +46,4 @@ def explore_data():
     # Opening cleaned df using Pickle
     anime_df = joblib.load(raw_data + "/" + "anime_eda.pkl")
     st.dataframe(anime_df)
+
