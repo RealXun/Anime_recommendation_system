@@ -95,15 +95,16 @@ def model_NearestNeighbors(df):
 #############################################################
 #############################################################
 
-'''
-The function matrix_creation_and_training converts a pivot table 
-of user-item ratings into a sparse matrix using the csr_matrix function. 
-It then fits a kNN model on this matrix using NearestNeighbors, 
-and saves the model to a file using the pickle module. This process 
-is an unsupervised learning technique for recommendation systems, 
-where the goal is to identify similar items or users based on their ratings.
-'''
+
 def matrix_creation_and_training(df_pivot):
+    '''
+    The function matrix_creation_and_training converts a pivot table 
+    of user-item ratings into a sparse matrix using the csr_matrix function. 
+    It then fits a kNN model on this matrix using NearestNeighbors, 
+    and saves the model to a file using the pickle module. This process 
+    is an unsupervised learning technique for recommendation systems, 
+    where the goal is to identify similar items or users based on their ratings.
+    '''
     # Convert pivot table of user-item ratings to a sparse matrix in CSR format
     matrix = csr_matrix(df_pivot.values)
 
@@ -132,14 +133,14 @@ def matrix_creation_and_training(df_pivot):
 ##############################################################
 ##############################################################
 
-'''
-In this code, the data is split into training and testing sets using 
-the train_test_split() function from surprise library. Then, an instance 
-of the SVD algorithm is created with the best parameters obtained 
-from the grid search, and it is trained on the training set using the fit() method.
-'''
+
 def train_test_svd():
- 
+        '''
+        In this code, the data is split into training and testing sets using 
+        the train_test_split() function from surprise library. Then, an instance 
+        of the SVD algorithm is created with the best parameters obtained 
+        from the grid search, and it is trained on the training set using the fit() method.
+        '''
         # Load model with best parameters
         gs = joblib.load(saved_models_folder + "/" + "SVD_model_best_params.pkl")
         data = joblib.load(processed_data + "/" + "data_reader_sample.pkl")    

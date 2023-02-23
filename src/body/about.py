@@ -46,8 +46,11 @@ def it_is_about():
         </style> """, unsafe_allow_html=True)
     st.markdown('<p class="font">Unsupervised Collaborative Filtering based on ratings Using k-Nearest Neighbors (kNN)</p>', unsafe_allow_html=True)
     with st.expander("See explanation and process."):
-        with open(body_folder + "/" + "un_based_feat.markdown",'r', encoding='utf-8') as f:
-            st.markdown(f.read(), unsafe_allow_html=True)    
+        path_to_html = body_folder + "/" + "unsupervised_user_explicit_rating_based_recommendation_system.html" 
+        # Read file and keep in variable
+        with open(path_to_html,'r', encoding='utf-8') as f: 
+            html_data = f.read()
+            st.components.v1.html(html_data,height=8300)  
 
 
     st.markdown(""" <style> .font {

@@ -346,13 +346,15 @@ def merging(df):
     based on the anime_id column. It then renames the 'rating_user' 
     column to 'user_rating' and returns the merged DataFrame.
     '''
+    # Loading rating df
     ratingdf = rating()
+
     # Añadimos suffixes for ratingdf ya que en los dos df la columna rating tiene el mismo nombre
     merged_df=pd.merge(df,ratingdf,on='anime_id',suffixes= ['', '_user']) 
 
     # Cambiamos un par de nombres de columnas
     merged_df = merged_df.rename(columns={'name': 'name', 'rating_user': 'user_rating'})
-#
+
     return merged_df
 
 
@@ -400,28 +402,29 @@ def create_pivot_table_unsupervised(df_features):
     to a pickle file and zipped. The function also saves a separate file containing only the 
     anime titles. Finally, the pivot table is returned.
     '''
-    # This pivot table consists of rows as title and columns as user id, this will help us to create sparse matrix which can be very helpful in finding the cosine similarity
+    # This function takes a DataFrame of features as input, and returns a pivot table of user ratings
+
+    # Creates the pivot table using pandas' pivot_table method, with user_id as columns, name as index, and user_rating as values
     pivot_df=df_features.pivot_table(index='name',columns='user_id',values='user_rating').fillna(0)
 
-    # Saving the table to pickle
+    # Saves the pivot table as a pickle file using joblib
     joblib.dump(pivot_df,processed_data + "/" + "pivot_user_based_unsupervised.pkl")
 
-    import zipfile as ZipFile
-    import zipfile
-
+    # Compresses the pickle file using zip and saves it
     dir, base_filename = os.path.split(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
     os.chdir(dir)
     zip = zipfile.ZipFile('pivot_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED)
     zip.write(base_filename)
     zip.close()
 
+    # Creates a DataFrame containing the index of the pivot table
     to_find_index=pivot_df.reset_index()
     to_find_index = to_find_index[["name"]]
 
-    # Saving the table to pickle
-    #joblib.dump(to_find_index,processed_data + "/" + "_to_find_index_user_based_unsupervised.pkl")
+    # Saves the DataFrame as a csv file
     to_find_index.to_csv(processed_data + "/" + "_to_find_index_user_based_unsupervised.csv")
 
+    # Returns the pivot table
     return pivot_df
 
 
