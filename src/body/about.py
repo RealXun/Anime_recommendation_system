@@ -52,6 +52,7 @@ def it_is_about():
             html_data = f.read()
             st.components.v1.html(html_data,height=8300)  
 
+       
 
     st.markdown(""" <style> .font {
         font-size:20px ; font-family: 'Cooper Black'; color: #FF9633;} 

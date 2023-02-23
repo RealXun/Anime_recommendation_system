@@ -16,7 +16,7 @@ st.set_page_config(layout='wide')
 
 # This opens a sidebar in the Streamlit app.
 with st.sidebar:
-    choose = option_menu("Anime Recommendator System", ["About this project","What is anime?","Exploring data","Recommmend Based on ratings", "Recommmend Based on Features", "Recommmend Using user ID","EDA", "Anime Info","About the Creator"],
+    choose = option_menu("Menu", ["About this project","What is anime?","Exploring data","Recommmend Based on ratings", "Recommmend Based on Features", "Recommmend Using user ID","EDA", "Anime Info","About the Creator"],
                          icons=['house','easel',"clipboard-data", '123', 'list-ul', 'credit-card-2-front',"graph-up", 'tv','person'],
                          menu_icon="app-indicator", default_index=0,
                          styles={"container": {"padding": "5!important", "background-color": "#fafafa"},
