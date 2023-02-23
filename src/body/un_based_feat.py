@@ -17,7 +17,7 @@ def uns_feat():
     st.markdown(""" <style> .font {
         font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
         </style> """, unsafe_allow_html=True)
-    st.markdown('<p class="font">Unsupervised user based collaborative filtering</p>', unsafe_allow_html=True)
+    st.markdown('<p class="font"> Unsupervised content based recommendation system</p>', unsafe_allow_html=True)
 
 
 

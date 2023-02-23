@@ -9,6 +9,7 @@ from body import what_is
 from body import an_info
 from body import explore
 from body import eda
+from body import get_recom
 
 st.set_page_config(layout='wide')
 
@@ -16,18 +17,18 @@ st.set_page_config(layout='wide')
 
 # This opens a sidebar in the Streamlit app.
 with st.sidebar:
-    choose = option_menu("Menu", ["About this project","What is anime?","Exploring data","Recommmend Based on ratings", "Recommmend Based on Features", "Recommmend Using user ID","EDA", "Anime Info","About the Creator"],
-                         icons=['house','easel',"clipboard-data", '123', 'list-ul', 'credit-card-2-front',"graph-up", 'tv','person'],
-                         menu_icon="app-indicator", default_index=0,
+    choose = option_menu("Menu", ["About this project","What is anime?","Exploring data","Get recommendations","EDA", "Anime Info","About the Creator"],
+                         icons=['house','easel',"clipboard-data", '123',"graph-up", 'tv','person'],
+                         menu_icon="cast", default_index=0,
                          styles={"container": {"padding": "5!important", "background-color": "#fafafa"},
                                 "icon": {"color": "orange", "font-size": "25px"}, 
                                 "nav-link": {"font-size": "16px", "text-align": "left", "margin":"0px", "--hover-color": "#eee"},
                                 "nav-link-selected": {"background-color": "#02ab21"},
-                                }
+                                },
                         )
 
 # This creates a drop-down menu in the sidebar with six options: 
-# "About", "Based on ratings", "Based on Features", "Using user ID", "Testing", and "About the Creator". 
+# "About", "What is anime?", "Exploring data", "Get recommendations", "EDA", "Anime Info", and "About the Creator". 
 # The icons argument provides icons for each option. menu_icon sets the icon for the sidebar. 
 # default_index sets the default option in the drop-down menu. styles sets the styling for the drop-down menu.
 
@@ -45,14 +46,8 @@ elif choose == "What is anime?":
 elif choose == "Exploring data":
     explore.explore_data()
 
-elif choose == "Recommmend Based on ratings":
-    un_based_rate.uns_bara()
-
-elif choose == "Recommmend Based on Features":
-    un_based_feat.uns_feat()
-
-elif choose == "Recommmend Using user ID":
-    sup_id.user_id()
+elif choose == "Get recommendations":
+    get_recom.get_the_recom()
 
 elif choose == "EDA":
     eda.eda_info()

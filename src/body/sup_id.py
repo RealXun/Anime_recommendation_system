@@ -18,7 +18,7 @@ def user_id():
     st.markdown(""" <style> .font {
         font-size:35px ; font-family: 'Cooper Black'; color: #FF9633;} 
         </style> """, unsafe_allow_html=True)
-    st.markdown('<p class="font">Supervised user rating based collaborative filtering</p>', unsafe_allow_html=True)
+    st.markdown('<p class="font">Supervised Collaborative Filtering based on ratings</p>', unsafe_allow_html=True)
 
 
 # Getting user input in the form of an integer for the ID of a user for whom 
