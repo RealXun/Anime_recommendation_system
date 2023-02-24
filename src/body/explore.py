@@ -47,3 +47,47 @@ def explore_data():
     anime_df = joblib.load(raw_data + "/" + "anime_eda.pkl")
     st.dataframe(anime_df)
 
+    st.title('My Streamlit App')
+
+    # Create a selectbox for choosing the column to display
+
+    columns = ["Type","Source","Rating","Genre","Theme","Released","Studios","Producers"]    
+    column = st.selectbox('Select a column', columns)
+    if column == "Theme":
+        split_values = anime_df["Theme"].str.split(',', expand=True).stack().reset_index(level=1, drop=True)
+        # Drop rows containing the value "Unknown"
+        split_values = split_values[split_values != "Unknown"]        
+        # Count the frequency of each unique value
+        value_counts = split_values.value_counts().head(30)
+    elif column == "Genre":
+        split_values = anime_df["Genre"].str.split(',', expand=True).stack().reset_index(level=1, drop=True)
+        # Drop rows containing the value "Unknown"
+        split_values = split_values[split_values != "Unknown"]        
+        # Count the frequency of each unique value
+        value_counts = split_values.value_counts().head(30)
+    elif column == "Theme":
+        split_values = anime_df["Theme"].str.split(',', expand=True).stack().reset_index(level=1, drop=True)
+        # Drop rows containing the value "Unknown"
+        split_values = split_values[split_values != "Unknown"]        
+        # Count the frequency of each unique value
+        value_counts = split_values.value_counts().head(30)
+    elif column == "Studios":
+        split_values = anime_df["Studios"].str.split(',', expand=True).stack().reset_index(level=1, drop=True)
+        # Drop rows containing the value "Unknown"
+        split_values = split_values[split_values != "Unknown"]        
+        # Count the frequency of each unique value
+        value_counts = split_values.value_counts().head(30)
+    elif column == "Producers":
+        split_values = anime_df["Producers"].str.split(',', expand=True).stack().reset_index(level=1, drop=True)
+        # Drop rows containing the value "Unknown"
+        split_values = split_values[split_values != "Unknown"]        
+        # Count the frequency of each unique value
+        value_counts = split_values.value_counts().head(30).sort_index(ascending=False)
+        # Sort the resulting series object in descending order
+        value_counts = value_counts.sort_values(ascending=False)
+    else:
+        # Count the frequency of each value in the selected column
+        value_counts = anime_df[column].value_counts().sort_values(ascending=False)
+    
+    # Create a bar chart
+    st.bar_chart(value_counts)

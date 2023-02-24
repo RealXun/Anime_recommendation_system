@@ -17,8 +17,8 @@ st.set_page_config(layout='wide')
 
 # This opens a sidebar in the Streamlit app.
 with st.sidebar:
-    choose = option_menu("Menu", ["About this project","What is anime?","Exploring data","Get recommendations","EDA", "Anime Info","About the Creator"],
-                         icons=['house','easel',"clipboard-data", '123',"graph-up", 'tv','person'],
+    choose = option_menu("Menu", ["About this project","What is anime?","Exploring data","Get recommendations","EDA", "Anime Info","About the Creator","Explore"],
+                         icons=['house','easel',"clipboard-data", '123',"graph-up", 'tv','person','person'],
                          menu_icon="cast", default_index=0,
                          styles={"container": {"padding": "5!important", "background-color": "#fafafa"},
                                 "icon": {"color": "orange", "font-size": "25px"}, 
@@ -57,3 +57,6 @@ elif choose == "Anime Info":
 
 elif choose == "About the Creator":
     about_me.about_me()
+
+elif choose == "Explore":
+    explore.explore_data()    
