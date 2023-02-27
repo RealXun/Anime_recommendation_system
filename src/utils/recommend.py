@@ -504,6 +504,16 @@ def sort_it(id):
     # Load the anime dataframe
     df = pd.read_csv(processed_data + "/" + "anime_final.csv")
     
+    # Print top 5 recommendations for each user
+    #for uid in ratingdf_sample['user_id'].unique():
+    #    user_ratings = ratingdf_sample[ratingdf_sample['user_id'] == uid]
+    #    user_anime = user_ratings['anime_id'].tolist()
+    #    user_unseen = list(set(ratingdf_sample['anime_id'].unique()) - set(user_anime))
+    #    user_unseen = [(uid, aid, 0) for aid in user_unseen]
+    #    predictions = model.test(user_unseen)
+    # Apply the SVD model to estimate the score for each anime
+    #df['Estimate_Score'] = df['anime_id'].apply(lambda x: algo.predict(id, x).est)
+
     # Apply the SVD model to estimate the score for each anime
     df['Estimate_Score'] = df['anime_id'].apply(lambda x: algo.predict(id, x).est)
     

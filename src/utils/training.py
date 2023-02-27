@@ -9,6 +9,7 @@ import pickle # serializing and deserializing a Python object structure.
 from fastparquet import write # parquet format, aiming integrate into python-based big data work-flows
 from fuzzywuzzy import fuzz # used for string matching
 
+from collections import defaultdict
 import numpy as np # functions for working in domain of linear algebra, fourier transform, matrices and arrays
 import pandas as pd # data analysis and manipulation tool
 import joblib # set of tools to provide lightweight pipelining in Python
@@ -21,11 +22,14 @@ from sklearn.preprocessing import MinMaxScaler # Transform features by scaling e
 
 # Python scikit for building and analyzing recommender systems that deal with explicit rating data
 from surprise import Dataset, Reader, NormalPredictor, KNNBasic, KNNWithMeans, SVD, accuracy
+from surprise.model_selection import train_test_split
+from surprise.model_selection import KFold
 
 ## scikit Cross validation iterators libraries
 from sklearn.model_selection import GridSearchCV
 from surprise.model_selection import cross_validate
 from surprise.model_selection import train_test_split
+
 
 # Unsupervised learner for implementing neighbor searches.
 from sklearn.neighbors import NearestNeighbors
@@ -133,6 +137,37 @@ def matrix_creation_and_training(df_pivot):
 ##############################################################
 ##############################################################
 
+def mape(predictions):
+    """
+    Compute the Mean Absolute Percentage Error (MAPE) for a set of predictions.
+    
+    Args:
+        predictions: list of Prediction objects returned by the test method of an algorithm
+        
+    Returns:
+        The MAPE score
+    """
+    actual_ratings = np.array([pred.r_ui for pred in predictions])
+    predicted_ratings = np.array([pred.est for pred in predictions])
+    return np.mean(np.abs(actual_ratings - predicted_ratings) / actual_ratings) * 100
+
+def r2(predictions):
+    """
+    Compute the R-squared (R2) score for a set of predictions.
+    
+    Args:
+        predictions: list of Prediction objects returned by the test method of an algorithm
+        
+    Returns:
+        The R2 score
+    """
+    actual_ratings = np.array([pred.r_ui for pred in predictions])
+    predicted_ratings = np.array([pred.est for pred in predictions])
+    mean_rating = np.mean(actual_ratings)
+    ss_tot = np.sum((actual_ratings - mean_rating) ** 2)
+    ss_res = np.sum((actual_ratings - predicted_ratings) ** 2)
+    return 1 - (ss_res / ss_tot)
+
 
 def train_test_svd():
     '''
@@ -165,10 +200,108 @@ def train_test_svd():
     # Calculates the RMSE and MAE for the predictions
     rmse = accuracy.rmse(predictions)
     mae = accuracy.mae(predictions) 
+    mse = accuracy.mse(predictions)
+    mape_score = mape(predictions)
+    r2_score = r2(predictions)
     print("RMSE:", rmse)
-    print("MAE:", mae)      
+    print("MSE:", mse)  
+    print("MAE:", mae)  
+    print("mape_score:", mape_score)  
+    print("r2_score:", r2_score)    
 
     # Saves the trained model as a pickle file using joblib
     joblib.dump(best_params,saved_models_folder + "/" + "SVD_new_model.pkl")
 
+
+
+
+def precision_recall_at_k(predictions, k=10, threshold=3.5):
+    """Return precision and recall at k metrics for each user"""
+
+    # First map the predictions to each user.
+    user_est_true = defaultdict(list)
+    for uid, _, true_r, est, _ in predictions:
+        user_est_true[uid].append((est, true_r))
+
+    precisions = dict()
+    recalls = dict()
+    for uid, user_ratings in user_est_true.items():
+
+        # Sort user ratings by estimated value
+        user_ratings.sort(key=lambda x: x[0], reverse=True)
+
+        # Number of relevant items
+        n_rel = sum((true_r >= threshold) for (_, true_r) in user_ratings)
+
+        # Number of recommended items in top k
+        n_rec_k = sum((est >= threshold) for (est, _) in user_ratings[:k])
+
+        # Number of relevant and recommended items in top k
+        n_rel_and_rec_k = sum(
+            ((true_r >= threshold) and (est >= threshold))
+            for (est, true_r) in user_ratings[:k]
+        )
+
+        # Precision@K: Proportion of recommended items that are relevant
+        # When n_rec_k is 0, Precision is undefined. We here set it to 0.
+
+        precisions[uid] = n_rel_and_rec_k / n_rec_k if n_rec_k != 0 else 0
+
+        # Recall@K: Proportion of relevant items that are recommended
+        # When n_rel is 0, Recall is undefined. We here set it to 0.
+
+        recalls[uid] = n_rel_and_rec_k / n_rel if n_rel != 0 else 0
+
+    return precisions, recalls
+
+def svd_precision_recall():
+    '''
+    In this code, the data is split into training and testing sets using 
+    the train_test_split() function from surprise library. Then, an instance 
+    of the SVD algorithm is created with the best parameters obtained 
+    from the grid search, and it is trained on the training set using the fit() method.
+    '''
+    # Loads the best hyperparameters for the SVD algorithm that were obtained from grid search
+    gs = joblib.load(saved_models_folder + "/" + "SVD_model_best_params.pkl")
+
+    # Loads the dataset from a pickle file using joblib
+    data = joblib.load(processed_data + "/" + "data_reader_sample.pkl")    
+
+    # Splits the data into training and testing sets with a 80:20 ratio
+    trainset, testset = train_test_split(data, test_size=0.2)       
+
+    # Creates an instance of the SVD algorithm with the best hyperparameters obtained from grid search
+    algo = SVD(n_factors=gs.best_params['rmse']['n_factors'], 
+                    n_epochs=gs.best_params['rmse']['n_epochs'], 
+                    lr_all=gs.best_params['rmse']['lr_all'], 
+                    reg_all=gs.best_params['rmse']['reg_all'])  
+
+    kf = KFold(n_splits=5)
+
+    count = 1
+    precision_list = []
+    recall_list = []
+    f1_score_list = []
+
+    for trainset, testset in kf.split(data):
+
+        algo.fit(trainset)  
+
+        # Generates predictions for the test set using the trained model
+        predictions = algo.test(testset)
+        precisions, recalls = precision_recall_at_k(predictions, k=5, threshold=4)
+
+        # Precision and recall can then be averaged over all users
+        precision = sum(prec for prec in precisions.values()) / len(precisions)
+        recall = sum(rec for rec in recalls.values()) / len(recalls)
+        f1_score = 2 * (precision * recall) / (precision + recall)
+
+        # Save measures
+        precision_list.append(precision)
+        recall_list.append(recall)
+        f1_score_list.append(f1_score)            
+
+        print('K =', count, '--- Precision:', precision, '--- Recall:', recall, '--- F1 score:',f1_score)
+        count +=1
+    return {'precision': precision_list, 'recall': recall_list, 'f1_score': f1_score_list}
 

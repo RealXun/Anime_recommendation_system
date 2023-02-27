@@ -82,9 +82,9 @@ def explore_data():
         # Drop rows containing the value "Unknown"
         split_values = split_values[split_values != "Unknown"]        
         # Count the frequency of each unique value
-        value_counts = split_values.value_counts().head(30).sort_index(ascending=False)
+        value_counts = split_values.value_counts().head(30)
         # Sort the resulting series object in descending order
-        value_counts = value_counts.sort_values(ascending=False)
+        value_counts = value_counts
     else:
         # Count the frequency of each value in the selected column
         value_counts = anime_df[column].value_counts().sort_values(ascending=False)
