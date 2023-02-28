@@ -201,13 +201,13 @@ def train_test_svd():
     rmse = accuracy.rmse(predictions)
     mae = accuracy.mae(predictions) 
     mse = accuracy.mse(predictions)
-    mape_score = mape(predictions)
-    r2_score = r2(predictions)
+    #mape_score = mape(predictions)
+    #r2_score = r2(predictions)
     print("RMSE:", rmse)
     print("MSE:", mse)  
     print("MAE:", mae)  
-    print("mape_score:", mape_score)  
-    print("r2_score:", r2_score)    
+    #print("mape_score:", mape_score)  
+    #print("r2_score:", r2_score)    
 
     # Saves the trained model as a pickle file using joblib
     joblib.dump(best_params,saved_models_folder + "/" + "SVD_new_model.pkl")
