@@ -9,6 +9,39 @@ from pathlib import Path
 from PIL import Image
 import requests
 from io import BytesIO
+import pandas as pd
+import xlsxwriter
+import base64
+
+output = BytesIO()
+
+def to_excel(df):
+    # Create a BytesIO object to store the Excel file as bytes
+    output = BytesIO()
+    
+    # Create a Pandas ExcelWriter object with the XlsxWriter engine
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    
+    # Write the DataFrame to the Excel file, specifying the sheet name and that the index should not be included
+    df.to_excel(writer, index=False, sheet_name='Recommendations')
+    
+    # Get a reference to the XlsxWriter workbook and worksheet objects
+    workbook = writer.book
+    worksheet = writer.sheets['Recommendations']
+    
+    # Create a format for numbers with two decimal places
+    format1 = workbook.add_format({'num_format': '0.00'}) 
+    
+    # Apply the number format to the first column of the worksheet
+    worksheet.set_column('A:A', None, format1)  
+    
+    # Save the Excel file and get its contents as bytes
+    writer.save()
+    processed_data = output.getvalue()
+    
+    # Return the Excel file contents as bytes
+    return processed_data
+
 
 
 def uns_bara():
@@ -138,6 +171,18 @@ def uns_bara():
         with st.spinner('Generating recommendations...'):
             result = unsupervised_user_explicit_rating_based(to_search,number_of_recommendations,selected_genre,selected_type,method)
             if result is not None: 
+
+                # Define a dataframe from the result list
+                df = pd.DataFrame(result)
+
+                # Call the function to create a excel file
+                df_xlsx = to_excel(df)
+
+                # Button to download the excel file
+                st.download_button(label='📥 Download Recommendations',
+                                                data=df_xlsx ,
+                                                file_name= 'Recommendations.xlsx')
+
                 # If the recommendation results are not empty, create a new dictionary to store them
                 new_dict={}
                 for di in result:
@@ -147,6 +192,7 @@ def uns_bara():
                     for k in di.keys():
                         if k =='name': continue
                         new_dict[di['name']][k]=di[k]
+
 
                 # Determine how many rows and columns are needed to display the recommendations
                 num_cols = 5

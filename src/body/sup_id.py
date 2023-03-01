@@ -9,6 +9,38 @@ from pathlib import Path
 from PIL import Image
 import requests
 from io import BytesIO
+import pandas as pd
+import xlsxwriter
+import base64
+
+output = BytesIO()
+
+def to_excel(df):
+    # Create a BytesIO object to store the Excel file as bytes
+    output = BytesIO()
+    
+    # Create a Pandas ExcelWriter object with the XlsxWriter engine
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    
+    # Write the DataFrame to the Excel file, specifying the sheet name and that the index should not be included
+    df.to_excel(writer, index=False, sheet_name='Recommendations')
+    
+    # Get a reference to the XlsxWriter workbook and worksheet objects
+    workbook = writer.book
+    worksheet = writer.sheets['Recommendations']
+    
+    # Create a format for numbers with two decimal places
+    format1 = workbook.add_format({'num_format': '0.00'}) 
+    
+    # Apply the number format to the first column of the worksheet
+    worksheet.set_column('A:A', None, format1)  
+    
+    # Save the Excel file and get its contents as bytes
+    writer.save()
+    processed_data = output.getvalue()
+    
+    # Return the Excel file contents as bytes
+    return processed_data
 
 
 
@@ -28,7 +60,7 @@ def user_id():
 # If it's not successful, it returns an error message asking the user to 
 # enter a valid integer.
 
-    user_input_1  = st.text_input("Choose the ID of the user you would like to see recommendations?") # create a text input for the user to enter the ID of the user they want recommendations for
+    user_input_1  = st.text_input("Choose the ID of the user you would like to see recommendations") # create a text input for the user to enter the ID of the user they want recommendations for
     try:
         users_id = int(user_input_1) # convert the input to an integer
     except ValueError:
@@ -142,6 +174,19 @@ def user_id():
         with st.spinner('Generating recommendations...'):
             result = super_ratings_based(users_id,number_of_recommendations,selected_genre,selected_type, method)
             if result is not None: 
+
+                # Define a dataframe from the result list
+                df = pd.DataFrame(result)
+
+                # Call the function to create a excel file
+                df_xlsx = to_excel(df)
+
+                # Button to download the excel file
+                st.download_button(label='📥 Download Recommendations',
+                                                data=df_xlsx ,
+                                                file_name= 'Recommendations.xlsx')
+
+
                 # If the recommendation results are not empty, create a new dictionary to store them
                 new_dict={}
                 for di in result:
@@ -164,7 +209,6 @@ def user_id():
                     for col_idx, key in enumerate(list(new_dict.keys())[row_idx*num_cols:(row_idx+1)*num_cols]):
                         # Get the recommendation for the current anime
                         result = new_dict[key]
-
                         # Get the cover image for the anime from the recommendation data
                         response = requests.get(result['cover'])
                         img = Image.open(BytesIO(response.content))
@@ -187,7 +231,7 @@ def user_id():
                                 cols[col_idx].write(f"**Score:** {result['score']}/10")
                             # Display the estimated score for the recommendation
                             if 'Estimate_Score' in result:
-                                    cols[col_idx].write(f"**{float(result['Estimate_Score'])}**")
+                                    cols[col_idx].write(f"Estimated Score: {result['Estimate_Score']:.2f}")
 
             else:
                 # If there are no recommendations to display, inform the user

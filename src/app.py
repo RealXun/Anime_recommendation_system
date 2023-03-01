@@ -37,20 +37,20 @@ with st.sidebar:
 # Depending on the option selected, it calls a specific function to display the corresponding 
 # content in the main panel of the Streamlit app.
 
-if choose == "About this project":
-    about.it_is_about()
-
-elif choose == "What is anime?":
+if choose == "What is anime?":
     what_is.what_is()
 
-elif choose == "Exploring data":
-    explore.explore_data()
+elif choose == "EDA":
+    eda.eda_info()
+
+elif choose == "About this project":
+    about.it_is_about()
 
 elif choose == "Get recommendations":
     get_recom.get_the_recom()
 
-elif choose == "EDA":
-    eda.eda_info()
+elif choose == "Exploring data":
+    explore.explore_data()
 
 elif choose == "Anime Info":
     an_info.info()
