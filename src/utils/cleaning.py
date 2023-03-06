@@ -42,7 +42,7 @@ def anime():
     anime = pd.read_csv(raw_data + "/" + "anime.csv")
     return anime
 
-def anime():
+def anime2023():
     '''
     This function reads a CSV file called "anime.csv" from a 
     directory called raw_data and returns the contents as a Pandas DataFrame.
@@ -453,6 +453,8 @@ def create_pivot_table_unsupervised(df_features):
     # Compresses the pickle file using zip and saves it
     dir, base_filename = os.path.split(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
     os.chdir(dir)
+    import zipfile as ZipFile
+    import zipfile
     zip = zipfile.ZipFile('pivot_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED)
     zip.write(base_filename)
     zip.close()
