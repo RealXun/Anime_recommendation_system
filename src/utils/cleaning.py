@@ -42,6 +42,14 @@ def anime():
     anime = pd.read_csv(raw_data + "/" + "anime.csv")
     return anime
 
+def anime():
+    '''
+    This function reads a CSV file called "anime.csv" from a 
+    directory called raw_data and returns the contents as a Pandas DataFrame.
+    '''
+    anime = pd.read_csv(raw_data + "/" + "anime_2023.csv")
+    return anime
+
 
 
 def rating():
@@ -53,6 +61,38 @@ def rating():
     return rating
 
 
+#def final_df():
+#    '''
+#    This function merges the two dataframes of anime data, reorders and selects columns, 
+#    renames the columns to lowercase, and saves the resulting dataframe to a CSV file. 
+#    The merged and cleaned dataframe is returned as the output.
+#    In other words, we get more information like to get more information like cover or japanese tittle
+#    '''
+#    # Load the original anime dataframe
+#    anime_no_cleaned = pd.read_csv(raw_data + "/" + "anime.csv")
+#    
+#    # Load the updated anime dataframe
+#    anime_new = pd.read_csv(raw_data + "/" + "anime_2023_02_15_00_08_28.csv", sep=";")
+#    
+#    # Merge the two dataframes on the anime_id column
+#    anime_final = pd.merge(
+#        anime_new[["anime_id", "English_Title", "Japanses_Title", "Source", "Duration", "Rating", "Score", "Rank", "synopsis", "Cover"]],
+#        anime_no_cleaned[["anime_id", "name", "genre", "type", "episodes", "members"]],
+#        on="anime_id"
+#    )
+#    
+#    # Reorder and select columns
+#    anime_final = anime_final[["anime_id", "name", "English_Title", "Japanses_Title", "genre", "type", "Source", "Duration", "episodes", "Rating", "Score", "Rank", "members", "synopsis", "Cover"]]
+#    
+#    # Rename columns to lower case
+#    anime_final = anime_final.rename(columns=str.lower)
+#    
+#    # Save the final dataframe to a CSV file in the processed data directory
+#    anime_final.to_csv(processed_data + "/" + "anime_final.csv", index=False)
+#    
+#    # Return the final dataframe
+#    return anime_final
+
 def final_df():
     '''
     This function merges the two dataframes of anime data, reorders and selects columns, 
@@ -62,25 +102,25 @@ def final_df():
     '''
     # Load the original anime dataframe
     anime_no_cleaned = pd.read_csv(raw_data + "/" + "anime.csv")
-    
+
     # Load the updated anime dataframe
-    anime_new = pd.read_csv(raw_data + "/" + "anime_2023_02_15_00_08_28.csv", sep=";")
-    
+    anime_new = pd.read_csv(raw_data + "/" + "anime_2023.csv")
+
     # Merge the two dataframes on the anime_id column
     anime_final = pd.merge(
-        anime_new[["anime_id", "English_Title", "Japanses_Title", "Source", "Duration", "Rating", "Score", "Rank", "synopsis", "Cover"]],
+        anime_new[["anime_id", "english_title","romanji", "japanses_title", "source", "duration", "rating", "score", "rank", "synopsis", "cover"]],
         anime_no_cleaned[["anime_id", "name", "genre", "type", "episodes", "members"]],
         on="anime_id"
     )
-    
+
     # Reorder and select columns
-    anime_final = anime_final[["anime_id", "name", "English_Title", "Japanses_Title", "genre", "type", "Source", "Duration", "episodes", "Rating", "Score", "Rank", "members", "synopsis", "Cover"]]
-    
+    anime_final = anime_final[["anime_id", "name", "english_title","romanji", "japanses_title", "genre", "type", "source", "duration", "episodes", "rating", "score", "rank", "members", "synopsis", "cover"]]
+
     # Rename columns to lower case
     anime_final = anime_final.rename(columns=str.lower)
     
     # Save the final dataframe to a CSV file in the processed data directory
-    anime_final.to_csv(processed_data + "/" + "anime_final.csv", index=False)
+    #anime_final.to_csv(processed_data + "/" + "anime_final.csv", index=False)
     
     # Return the final dataframe
     return anime_final
