@@ -60,6 +60,7 @@ def info():
 
     # Display the cover image in the left column
     with col1:
+        
         if new_dict[selected_name]['cover']: 
             response = requests.get(new_dict[selected_name]['cover'])     
             img = Image.open(BytesIO(response.content))
@@ -69,6 +70,9 @@ def info():
     with col2:
         if new_dict[selected_name]['english_title']:
             st.write(f"**English name:** {new_dict[selected_name]['english_title']}")
+
+        if new_dict[selected_name]['romanji']:
+            st.write(f"**Romanji name:** {new_dict[selected_name]['romanji']}")
 
         if new_dict[selected_name]['japanses_title']:
             st.write(f"**Jananese name:** {new_dict[selected_name]['japanses_title']}")
@@ -81,6 +85,9 @@ def info():
 
         if new_dict[selected_name]['source']:
             st.write(f"**Source:** {new_dict[selected_name]['source']}")
+
+        if new_dict[selected_name]['released']:
+            st.write(f"**Released Year:** {new_dict[selected_name]['released']}") 
 
         if (new_dict[selected_name]['duration']):
             st.write(f"**Duration:** {new_dict[selected_name]['duration']}")

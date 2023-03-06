@@ -70,11 +70,9 @@ def names_unique():
     '''
     Return a list of unique names in the column 'english_title'
     '''
-    anime = pd.read_csv(raw_data + "/" + "anime.csv")
+    anime = pd.read_csv(raw_data + "/" + "anime_2023.csv")
     names = anime['english_title'].unique().tolist()
     return names
-
-
 
 def all_anime_dict():
     '''
@@ -83,7 +81,8 @@ def all_anime_dict():
     and the values of the dictionary are the corresponding 
     Pandas Series (i.e., column) of the DataFrame.
     '''
-    anime_dict = anime().to_dict('records')
+    anime2023 = pd.read_csv(raw_data + "/" + "anime_2023.csv")
+    anime_dict = anime2023.to_dict('records')
     return anime_dict
 
 

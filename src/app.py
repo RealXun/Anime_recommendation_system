@@ -8,7 +8,9 @@ from scripts import about_me
 from scripts import what_is
 from scripts import an_info
 from scripts import explore
+from scripts import eda
 from scripts import get_recom
+
 
 st.set_page_config(layout='wide')
 
@@ -16,8 +18,8 @@ st.set_page_config(layout='wide')
 
 # This opens a sidebar in the Streamlit app.
 with st.sidebar:
-    choose = option_menu("Menu", ["What is anime?","EDA","About this project","Get recommendations", "Anime Info","About the Creator","Exploring data"],
-                         icons=['house','easel',"clipboard-data", '123',"graph-up", 'tv','person','person'],
+    choose = option_menu("Menu", ["What is anime?","About this project","Get recommendations", "Anime Info","About the Creator"],
+                         icons=['house','easel',"clipboard-data", '123',"graph-up", 'tv','person'],
                          menu_icon="cast", default_index=0,
                          styles={"container": {"padding": "5!important", "background-color": "#fafafa"},
                                 "icon": {"color": "orange", "font-size": "25px"}, 
@@ -53,6 +55,3 @@ elif choose == "Anime Info":
 
 elif choose == "About the Creator":
     about_me.about_me()
-
-elif choose == "Explore":
-    explore.explore_data()    

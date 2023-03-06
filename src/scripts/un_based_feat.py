@@ -12,7 +12,17 @@ from io import BytesIO
 import pandas as pd
 import xlsxwriter
 import base64
+PROJECT_ROOT = os.path.abspath(os.path.join(
+                  os.path.dirname(__file__), 
+                  os.pardir)
+)
+data_folder = (PROJECT_ROOT + "/" + "data")
 
+saved_models_folder = (data_folder + "/" + "saved_models")
+raw_data = (data_folder + "/" + "_raw")
+processed_data = (data_folder + "/" + "processed")
+content_based_supervised_data = (data_folder + "/" + "processed" + "/" + "content_based_supervised")
+output = BytesIO()
 output = BytesIO()
 
 
@@ -66,7 +76,13 @@ def uns_feat():
         if to_search.isnumeric():   # checks if the value entered by the user is a number
             st.write("Input contains only numbers. Please enter a string with at least one non-numeric character.")   # displays error message if the input contains only numbers
         else:
-            st.write(f"Input is valid: {to_search}")   # displays success message if the input is valid
+            anime = pd.read_csv(processed_data + "/" + "_anime_to_compare_with_name.csv")
+            # Find the closest title in the anime dataset to the user's query
+            closest_title, distance_score = recommend.finding_the_closest_title(to_search,anime)
+            if distance_score == 100:
+                st.write(f"Input is valid: {to_search}")   # displays success message if the input is valid
+            else:
+                st.write(f"I guess you misspelled the name\n and you looking similitudes for the anime named:   {closest_title}")
 
 
 
