@@ -177,7 +177,7 @@ def train_test_svd():
     from the grid search, and it is trained on the training set using the fit() method.
     '''
     # Loads the best hyperparameters for the SVD algorithm that were obtained from grid search
-    gs = joblib.load(saved_models_folder + "/" + "SVD_model_best_params.pkl")
+    gs = joblib.load(saved_models_folder + "/" + "SVD_new_model_best_params.pkl")
 
     # Loads the dataset from a pickle file using joblib
     data = joblib.load(processed_data + "/" + "data_reader_sample.pkl")    
@@ -254,6 +254,9 @@ def precision_recall_at_k(predictions, k=10, threshold=3.5):
 
     return precisions, recalls
 
+
+
+
 def svd_precision_recall():
     '''
     In this code, the data is split into training and testing sets using 
@@ -276,32 +279,38 @@ def svd_precision_recall():
                     lr_all=gs.best_params['rmse']['lr_all'], 
                     reg_all=gs.best_params['rmse']['reg_all'])  
 
-    kf = KFold(n_splits=5)
+    kf = KFold(n_splits=5)  # initialize a KFold object with 5 splits
 
-    count = 1
-    precision_list = []
-    recall_list = []
-    f1_score_list = []
+    count = 1  # initialize a count variable
+    precision_list = []  # initialize an empty list to store precision scores
+    recall_list = []  # initialize an empty list to store recall scores
+    f1_score_list = []  # initialize an empty list to store F1 scores
 
+    # loop through each split of the data using the KFold object
     for trainset, testset in kf.split(data):
 
-        algo.fit(trainset)  
+        algo.fit(trainset)  # fit the recommendation algorithm on the training set
 
-        # Generates predictions for the test set using the trained model
-        predictions = algo.test(testset)
+        predictions = algo.test(testset)  # make predictions on the test set using the algorithm
+
+        # calculate the precision and recall at k
         precisions, recalls = precision_recall_at_k(predictions, k=5, threshold=4)
 
-        # Precision and recall can then be averaged over all users
+        # calculate the precision, recall, and F1 score for the split
         precision = sum(prec for prec in precisions.values()) / len(precisions)
         recall = sum(rec for rec in recalls.values()) / len(recalls)
         f1_score = 2 * (precision * recall) / (precision + recall)
 
-        # Save measures
+        # append the scores to their respective lists
         precision_list.append(precision)
         recall_list.append(recall)
         f1_score_list.append(f1_score)            
 
+        # print the scores for the current split
         print('K =', count, '--- Precision:', precision, '--- Recall:', recall, '--- F1 score:',f1_score)
         count +=1
+
+    # return a dictionary containing the lists of scores
     return {'precision': precision_list, 'recall': recall_list, 'f1_score': f1_score_list}
+
 
