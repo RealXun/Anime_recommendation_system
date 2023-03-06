@@ -1,15 +1,14 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-from body import un_based_rate
-from body import un_based_feat
-from body import sup_id
-from body import about
-from body import about_me
-from body import what_is
-from body import an_info
-from body import explore
-from body import eda
-from body import get_recom
+from scripts import un_based_rate
+from scripts import un_based_feat
+from scripts import sup_id
+from scripts import about
+from scripts import about_me
+from scripts import what_is
+from scripts import an_info
+from scripts import explore
+from scripts import get_recom
 
 st.set_page_config(layout='wide')
 
