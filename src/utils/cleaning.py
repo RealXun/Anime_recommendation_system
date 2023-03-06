@@ -528,8 +528,8 @@ def supervised_prepare_training():
     # Get the shape of the DataFrame 'ratingdf'
     ratingdf.shape
 
-    # Set the size to 100,000 and sample from the 'ratingdf' DataFrame based on the proportion of ratings for each score
-    size = 100000
+    # Set the size to 1,000,000 and sample from the 'ratingdf' DataFrame based on the proportion of ratings for each score
+    size = 1000000
 
     # This will make sure that the sampled data has roughly the same proportion of ratings for each score as the original data
     ratingdf_sample = ratingdf.groupby("rating", group_keys=False).apply(lambda x: x.sample(int(np.rint(size*len(x)/len(ratingdf))))).sample(frac=1).reset_index(drop=True)

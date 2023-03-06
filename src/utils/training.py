@@ -265,7 +265,7 @@ def svd_precision_recall():
     from the grid search, and it is trained on the training set using the fit() method.
     '''
     # Loads the best hyperparameters for the SVD algorithm that were obtained from grid search
-    gs = joblib.load(saved_models_folder + "/" + "SVD_model_best_params.pkl")
+    gs = joblib.load(saved_models_folder + "/" + "SVD_best_params_test_model.pkl")
 
     # Loads the dataset from a pickle file using joblib
     data = joblib.load(processed_data + "/" + "data_reader_sample.pkl")    
