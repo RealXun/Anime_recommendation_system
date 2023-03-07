@@ -164,7 +164,7 @@ def train_test_svd():
     # Print the average RMSE and MAE across all folds
     print('Average RMSE Training:',  round(cv_results['test_rmse'].mean(), 2))
     print('Average MAE Training:', round(cv_results['test_mae'].mean(), 2))
-    print('Average MAE Training:', round(cv_results['test_mse'].mean(), 2))
+    print('Average MSE Training:', round(cv_results['test_mse'].mean(), 2))
 
     # Trains the SVD algorithm on the training set using the fit() method
     best_params.fit(trainset)       

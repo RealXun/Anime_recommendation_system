@@ -44,20 +44,47 @@ k-Nearest Neighbors model on a given dataset, using specified
 parameters. It then saves the indices of the nearest neighbors 
 to a file and returns them.
 '''
-anime_features = pd.read_csv(raw_data + "/" + "anime_features.csv")
+# Read in the anime features CSV file as a pandas DataFrame
+print('\nReading in anime features CSV file...')
+anime_features = pd.read_csv(processed_data + "/" + "anime_features.csv")
+print('Done.')
+
+# Initialize MinMaxScaler object
+print('\nInitializing MinMaxScaler object...')
 min_max = MinMaxScaler()
+print('Done.')
+
+
+# Scale the anime features using MinMaxScaler
+print('\nScaling the anime features using MinMaxScaler...')
 min_max_features = min_max.fit_transform(anime_features)
+print('Done.')
+
+
+# Round the scaled features to 2 decimal places using numpy
+print("\nRounding the scaled features to 2 decimal places...")
 np.round(min_max_features,2)
+print('Done.')
+
+
 # Build and "train" the model using NearestNeighbors algorithm
 # algorithm: algorithm used to compute the nearest neighbors (‘auto’, ‘ball_tree’, ‘kd_tree’, ‘brute’)
 # leaf_size: leaf size passed to BallTree or KDTree
 # metric: distance metric used for the tree. Can be 'minkowski', 'euclidean', etc.
 # n_neighbors: number of neighbors to use for kneighbors queries
 # p: power parameter for the Minkowski metric. When p = 1, this is equivalent to using manhattan_distance
+print("Building and training the model using NearestNeighbors algorithm...")
 neigh = NearestNeighbors(algorithm= 'auto', leaf_size= 30, metric= 'minkowski', n_neighbors= 100, p= 1, radius= 0.0).fit(min_max_features)
+print('Done.')
+
 # Get the distances and indices of the nearest neighbors
 # distances: array representing the lengths to points, only present if return_distance=True
 # indices: indices of the nearest points in the population matrix
+print("Getting the distances and indices of the nearest neighbors...")
 distances, indices = neigh.kneighbors(min_max_features)
+print('Done.')
+
 # Save the model to a file using joblib.dump
+print("\nSaving trained model...")
 joblib.dump(indices, saved_models_folder + "/" + "kNearest_user_content_new_model.pkl")
+print("Model saved successfully!") 
