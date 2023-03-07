@@ -497,19 +497,13 @@ def supervised_prepare_training():
     # Get the shape of the DataFrame 'ratingdf'
     ratingdf.shape
 
-    # Set the size to 1,000,000 and sample from the 'ratingdf' DataFrame based on the proportion of ratings for each score
-    size = 1000000
-
-    # This will make sure that the sampled data has roughly the same proportion of ratings for each score as the original data
-    ratingdf_sample = ratingdf.groupby("rating", group_keys=False).apply(lambda x: x.sample(int(np.rint(size*len(x)/len(ratingdf))))).sample(frac=1).reset_index(drop=True)
-
     # Create a new 'Reader' object with the rating scale set to a range between 1 and 10
     reader = Reader(rating_scale=(1,10))
 
     # Load the sampled data into a 'Dataset' object using the 'load_from_df' method and the 'reader' object
-    data = Dataset.load_from_df(ratingdf_sample[['user_id', 'anime_id', 'rating']], reader)
+    data = Dataset.load_from_df(ratingdf[['user_id', 'anime_id', 'rating']], reader)
 
     # Saving the table to pickle
-    joblib.dump(data,processed_data + "/" + "data_reader_sample.pkl")
+    joblib.dump(data,processed_data + "/" + "data_reader_for_svd_model.pkl")
 
     return data

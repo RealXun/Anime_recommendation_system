@@ -22,10 +22,12 @@ PROJECT_ROOT = os.path.abspath(os.path.join(
                   os.pardir)
 )
 
-data_folder = (PROJECT_ROOT + "/" + "data")
+src_folder = (PROJECT_ROOT + "/" + "src")
+data_folder = (src_folder + "/" + "data")
 saved_models_folder = (data_folder + "/" + "saved_models")
 raw_data = (data_folder + "/" + "_raw")
 processed_data = (data_folder + "/" + "processed")
+test_models = (saved_models_folder + "/" + "test_models")
 
 
 #############################################################
@@ -44,6 +46,8 @@ and saves the model to a file using the pickle module. This process
 is an unsupervised learning technique for recommendation systems, 
 where the goal is to identify similar items or users based on their ratings.
 '''
+# Saves the pivot table as a pickle file using joblib
+df_pivot = joblib.load(processed_data + "/" + "pivot_user_based_unsupervised.pkl")
 
 # Convert pivot table of user-item ratings to a sparse matrix in CSR format
 matrix = csr_matrix(df_pivot.values)
