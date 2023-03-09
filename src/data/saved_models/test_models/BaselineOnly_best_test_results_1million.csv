@@ -1,0 +1,5 @@
+dataset_size,model_name,metric,best_score,best_params
+1million,BaselineOnly,RMSE,1.236,"{'bsl_options': {'method': 'sgd', 'reg': 0.02, 'learning_rate': 0.01, 'n_epochs': 15, 'verbose': True}, 'verbose': True}"
+1million,BaselineOnly,MAE,0.938,"{'bsl_options': {'method': 'sgd', 'reg': 0.02, 'learning_rate': 0.01, 'n_epochs': 15, 'verbose': True}, 'verbose': True}"
+1million,BaselineOnly,MSE,1.528,"{'bsl_options': {'method': 'sgd', 'reg': 0.02, 'learning_rate': 0.01, 'n_epochs': 15, 'verbose': True}, 'verbose': True}"
+1million,BaselineOnly,FCP,0.63,"{'bsl_options': {'method': 'sgd', 'reg': 0.02, 'learning_rate': 0.01, 'n_epochs': 15, 'verbose': True}, 'verbose': True}"

@@ -1,0 +1,5 @@
+dataset_size,model_name,metric,best_score,best_params
+1million,SVD,RMSE,1.233,"{'n_factors': 500, 'n_epochs': 120, 'lr_all': 0.01, 'reg_all': 0.05}"
+1million,SVD,MAE,0.941,"{'n_factors': 500, 'n_epochs': 120, 'lr_all': 0.01, 'reg_all': 0.05}"
+1million,SVD,MSE,1.519,"{'n_factors': 500, 'n_epochs': 120, 'lr_all': 0.01, 'reg_all': 0.05}"
+1million,SVD,FCP,0.633,"{'n_factors': 500, 'n_epochs': 120, 'lr_all': 0.01, 'reg_all': 0.05}"

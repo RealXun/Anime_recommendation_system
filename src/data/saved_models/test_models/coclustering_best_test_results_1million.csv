@@ -1,0 +1,5 @@
+dataset_size,model_name,metric,best_score,best_params
+1million,coclustering,RMSE,1.3,"{'n_cltr_u': 3, 'n_cltr_i': 3, 'n_epochs': 30, 'verbose': False}"
+1million,coclustering,MAE,0.984,"{'n_cltr_u': 3, 'n_cltr_i': 3, 'n_epochs': 30, 'verbose': False}"
+1million,coclustering,MSE,1.691,"{'n_cltr_u': 3, 'n_cltr_i': 3, 'n_epochs': 30, 'verbose': False}"
+1million,coclustering,FCP,0.624,"{'n_cltr_u': 3, 'n_cltr_i': 3, 'n_epochs': 30, 'verbose': False}"

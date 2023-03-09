@@ -1,0 +1,5 @@
+dataset_size,model_name,metric,best_score,best_params
+whole data,SVD,RMSE,1.088,"{'n_factors': 500, 'n_epochs': 120, 'lr_all': 0.01, 'reg_all': 0.05}"
+whole data,SVD,MAE,0.817,"{'n_factors': 500, 'n_epochs': 120, 'lr_all': 0.01, 'reg_all': 0.05}"
+whole data,SVD,MSE,1.184,"{'n_factors': 500, 'n_epochs': 120, 'lr_all': 0.01, 'reg_all': 0.05}"
+whole data,SVD,FCP,0.747,"{'n_factors': 500, 'n_epochs': 120, 'lr_all': 0.01, 'reg_all': 0.05}"

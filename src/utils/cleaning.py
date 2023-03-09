@@ -446,7 +446,46 @@ def create_pivot_table_unsupervised(df_features):
 #                                                            #
 ##############################################################
 ##############################################################
+def prepare_for_different_models(size=None):
+    '''
+    The code reads two CSV files (anime.csv and rating.csv.zip) and loads them into dataframes. 
+    Then it creates a subset of the rating dataframe containing only rows where the rating is 
+    greater than 0 and removes the index column. Next, it samples a subset of the data with 
+    a specified size, grouped by the rating column.
+    '''
+    # Load 'anime.csv' file into a pandas DataFrame object called 'anime'
+    anime = pd.read_csv(raw_data + "/" + "anime.csv")
 
+    # Load 'rating.csv.zip' file into a pandas DataFrame object called 'rating'
+    rating = pd.read_csv(raw_data + "/" + "rating.csv.zip")
+
+    # Filter out all ratings less than or equal to 0 and reset the index of the DataFrame
+    ratingdf = rating[rating.rating>0]
+    ratingdf = ratingdf.reset_index()
+
+    # Drop the 'index' column and update the DataFrame in-place
+    ratingdf.drop('index', axis=1, inplace=True)
+
+    # If a size value is passed in, sample from the 'ratingdf' DataFrame based on the proportion of ratings for each score and the specified size
+    if size:
+        # This will make sure that the sampled data has roughly the same proportion of ratings for each score as the original data
+        ratingdf_sample = ratingdf.groupby("rating", group_keys=False).apply(lambda x: x.sample(int(np.rint(size*len(x)/len(ratingdf))))).sample(frac=1).reset_index(drop=True)
+    # If no size value is passed in, use the entire 'ratingdf' DataFrame
+    else:
+        ratingdf_sample = ratingdf
+
+    # Create a new 'Reader' object with the rating scale set to a range between 1 and 10
+    reader = Reader(rating_scale=(1,10))
+
+    # Load the sampled data (or the entire DataFrame if no size value is passed in) into a 'Dataset' object using the 'load_from_df' method and the 'reader' object
+    data = Dataset.load_from_df(ratingdf_sample[['user_id', 'anime_id', 'rating']], reader)
+    if size:
+        # Saving the table to pickle
+        joblib.dump(data,processed_data + "/" + "data_reader_for_different_models_1million.pkl")
+    else:
+        # Saving the table to pickle
+        joblib.dump(data,processed_data + "/" + "data_reader_for_different_models_whole_data.pkl")
+    return data
 
 def supervised_rating_cleaning(rating):
     '''
@@ -468,9 +507,7 @@ def supervised_rating_cleaning(rating):
     return ratingdf
 
 
-
-
-def supervised_prepare_training():
+def supervised_prepare_training(size=None):
     '''
     The code reads two CSV files (anime.csv and rating.csv.zip) and loads them into dataframes. 
     Then it creates a subset of the rating dataframe containing only rows where the rating is 
@@ -483,10 +520,6 @@ def supervised_prepare_training():
     # Load 'rating.csv.zip' file into a pandas DataFrame object called 'rating'
     rating = pd.read_csv(raw_data + "/" + "rating.csv.zip")
 
-    # Create a new DataFrame 'anime_mapping' that is a copy of the 'anime' DataFrame and remove the 'episodes', 'members', and 'rating' columns
-    anime_mapping = anime.copy()
-    anime_mapping.drop(['episodes','members','rating'],axis=1, inplace=True)
-
     # Filter out all ratings less than or equal to 0 and reset the index of the DataFrame
     ratingdf = rating[rating.rating>0]
     ratingdf = ratingdf.reset_index()
@@ -494,14 +527,18 @@ def supervised_prepare_training():
     # Drop the 'index' column and update the DataFrame in-place
     ratingdf.drop('index', axis=1, inplace=True)
 
-    # Get the shape of the DataFrame 'ratingdf'
-    ratingdf.shape
+    # If a size value is passed in, sample from the 'ratingdf' DataFrame based on the proportion of ratings for each score and the specified size
+    if size:
+        ratingdf_sample = ratingdf.groupby("rating", group_keys=False).apply(lambda x: x.sample(int(np.rint(size*len(x)/len(ratingdf))))).sample(frac=1).reset_index(drop=True)
+    # If no size value is passed in, use the entire 'ratingdf' DataFrame
+    else:
+        ratingdf_sample = ratingdf
 
     # Create a new 'Reader' object with the rating scale set to a range between 1 and 10
     reader = Reader(rating_scale=(1,10))
 
     # Load the sampled data into a 'Dataset' object using the 'load_from_df' method and the 'reader' object
-    data = Dataset.load_from_df(ratingdf[['user_id', 'anime_id', 'rating']], reader)
+    data = Dataset.load_from_df(ratingdf_sample[['user_id', 'anime_id', 'rating']], reader)
 
     # Saving the table to pickle
     joblib.dump(data,processed_data + "/" + "data_reader_for_svd_model.pkl")

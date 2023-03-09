@@ -21,15 +21,8 @@ from scipy.sparse import csr_matrix # Returns a copy of column i of the matrix, 
 from sklearn.preprocessing import MinMaxScaler # Transform features by scaling each feature to a given range.
 
 # Python scikit for building and analyzing recommender systems that deal with explicit rating data
-from surprise import Dataset, Reader, NormalPredictor, KNNBasic, KNNWithMeans, SVD, accuracy
-from surprise.model_selection import train_test_split
-from surprise.model_selection import KFold
-
-## scikit Cross validation iterators libraries
-from sklearn.model_selection import GridSearchCV
-from surprise.model_selection import cross_validate
-from surprise.model_selection import train_test_split
-
+from surprise import Dataset, Reader, SVD, accuracy
+from surprise.model_selection import GridSearchCV, train_test_split, cross_validate,KFold
 
 # Unsupervised learner for implementing neighbor searches.
 from sklearn.neighbors import NearestNeighbors
@@ -136,18 +129,27 @@ def matrix_creation_and_training(df_pivot):
 #                                                            #
 ##############################################################
 ##############################################################
-def train_test_svd():
+def train_test_svd(size=None):
     '''
     In this code, the data is split into training and testing sets using 
     the train_test_split() function from surprise library. Then, an instance 
     of the SVD algorithm is created with the best parameters obtained 
     from the grid search, and it is trained on the training set using the fit() method.
     '''
-    # Loads the best hyperparameters for the SVD algorithm that were obtained from grid search
-    gs = joblib.load(test_models + "/" + "SVD_best_params_test_model.pkl")
+    if size:
+        # loading the table from pickle
+        data = joblib.load(processed_data + "/" + "data_reader_for_different_models_1million.pkl")
 
-    # Loads the dataset from a pickle file using joblib
-    data = joblib.load(processed_data + "/" + "data_reader_for_svd_model.pkl")    
+        # Loads the best hyperparameters for the SVD algorithm that were obtained from grid search
+        gs = joblib.load(test_models + "/" + "SVD_best_params_test_model_1million.pkl")        
+            
+    else:
+        # loading the table from pickle
+        data = joblib.load(processed_data + "/" + "data_reader_for_different_models_whole_data.pkl")
+
+        # Loads the best hyperparameters for the SVD algorithm that were obtained from grid search
+        gs = joblib.load(test_models + "/" + "SVD_best_params_test_model_whole_data.pkl")       
+
 
     # Splits the data into training and testing sets with a 80:20 ratio
     trainset, testset = train_test_split(data, test_size=0.2)       
