@@ -161,12 +161,13 @@ def train_test_svd(size=None):
                     reg_all=gs['rmse']['reg_all'])
 
     # Evaluate the model using cross-validation
-    cv_results = cross_validate(best_params, data, measures=['RMSE', 'MAE', 'MSE'], cv=5, verbose=True)
+    cv_results = cross_validate(best_params, data, measures=['RMSE', 'MAE', 'MSE','FCP'], cv=5, verbose=True)
 
     # Print the average RMSE and MAE across all folds
-    print('Average RMSE Training:',  round(cv_results['test_rmse'].mean(), 2))
+    print('Average RMSE Training:', round(cv_results['test_rmse'].mean(), 2))
     print('Average MAE Training:', round(cv_results['test_mae'].mean(), 2))
     print('Average MSE Training:', round(cv_results['test_mse'].mean(), 2))
+    print('Average FCP Training:', cv_results['test_fcp'].mean())
 
     # Trains the SVD algorithm on the training set using the fit() method
     best_params.fit(trainset)       
@@ -175,14 +176,39 @@ def train_test_svd(size=None):
     predictions = best_params.test(testset) 
 
     # Calculates the RMSE, MSE and MAE for the predictions
-    rmse = round(accuracy.rmse(predictions, verbose=False), 2)
-    mse = round(accuracy.mse(predictions, verbose=False), 2)
-    mae = round(accuracy.mae(predictions, verbose=False), 2)
+    rmse = round(accuracy.rmse(predictions, verbose=False), 3)
+    mse = round(accuracy.mse(predictions, verbose=False), 3)
+    mae = round(accuracy.mae(predictions, verbose=False), 3)
+    fcp = accuracy.fcp(predictions, verbose=False)
 
     # Print the results of the RMSE, MSE and MAE for the predictions
-    print(f"RMSE Test: {rmse:.2f}")
-    print(f"MSE Test: {mse:.2f}")
-    print(f"MAE Test: {mae:.2f}")
+    print(f"RMSE Test: {rmse:.3f}")
+    print(f"MSE Test: {mse:.3f}")
+    print(f"MAE Test: {mae:.3f}")
+    print(f"FCP Test: {fcp}")
+
+    # Saves the trained model as a pickle file using joblib
+    joblib.dump(predictions,saved_models_folder + "/" + "SVD_model_predictions.pkl")
+
 
     # Saves the trained model as a pickle file using joblib
     joblib.dump(best_params,saved_models_folder + "/" + "SVD_new_model.pkl")
+
+    import feather
+    import pyarrow.parquet as pq
+
+    # Save as Feather file
+    feather.write_dataframe(best_params, saved_models_folder + "/" + "SVD_new_model.feather")
+
+    # Save as Parquet file
+    table = pq.Table.from_pandas(best_params)
+    pq.write_table(table, saved_models_folder + "/" + "SVD_new_model.parquet")
+
+    # Compresses the pickle file using zip and saves it
+    dir, base_filename = os.path.split(saved_models_folder + "/" + "SVD_new_model.pkl")
+    os.chdir(dir)
+    import zipfile as ZipFile
+    import zipfile
+    zip = zipfile.ZipFile('SVD_new_model.zip',"w", zipfile.ZIP_DEFLATED)
+    zip.write(base_filename)
+    zip.close()
