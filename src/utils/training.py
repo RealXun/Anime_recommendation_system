@@ -194,16 +194,6 @@ def train_test_svd(size=None):
     # Saves the trained model as a pickle file using joblib
     joblib.dump(best_params,saved_models_folder + "/" + "SVD_new_model.pkl")
 
-    import feather
-    import pyarrow.parquet as pq
-
-    # Save as Feather file
-    feather.write_dataframe(best_params, saved_models_folder + "/" + "SVD_new_model.feather")
-
-    # Save as Parquet file
-    table = pq.Table.from_pandas(best_params)
-    pq.write_table(table, saved_models_folder + "/" + "SVD_new_model.parquet")
-
     # Compresses the pickle file using zip and saves it
     dir, base_filename = os.path.split(saved_models_folder + "/" + "SVD_new_model.pkl")
     os.chdir(dir)

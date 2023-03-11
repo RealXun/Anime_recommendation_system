@@ -375,21 +375,26 @@ def features_user_based_unsupervised(df_merged):
     specified threshold value, and saves the resulting pivot table to a pickle file. 
     It then compresses the pickle file into a zip file and returns the resulting pivot table.
     '''
-    # A user who hasn't given any ratings (-1) has added no value to the engine. So let's drop it.
+    
+    # Make a copy of the input dataframe
     features=df_merged.copy()
+
+    # Replace -1 values in the "user_rating" column with NaN
     features["user_rating"].replace({-1: np.nan}, inplace=True)
+	
+    # Drop rows with NaN values (i.e., users who haven't given any ratings)
     features = features.dropna(axis = 0, how ='any')
-    # Drop rows with NaN values (user has not given any ratings)
-    
-    # There are users who has rated only once. So we should think if we want to consider only users with a minimin ratings as threshold value.
+
+    # Count the number of ratings for each user
     counts = features['user_id'].value_counts()
+	
+    # Keep only the rows for users with at least 200 ratings
     features = features[features['user_id'].isin(counts[counts >= 200].index)]
-    # Only consider users with at least 200 ratings
-    
-    # Saving the pivot table to pickle
+
+    # Save the resulting dataframe to a pickle file
     joblib.dump(features,processed_data + "/" + "features_user_based_unsupervised.pkl")
     
-    # Create a zip file for the saved pickle file
+    # Compress the pickle file into a zip file
     import zipfile as ZipFile
     import zipfile
     dir, base_filename = os.path.split(processed_data + "/" + "features_user_based_unsupervised.pkl")
@@ -397,8 +402,8 @@ def features_user_based_unsupervised(df_merged):
     zip = zipfile.ZipFile('features_user_based_unsupervised.zip',"w", zipfile.ZIP_DEFLATED)
     zip.write(base_filename)
     zip.close()
-    
-    # Return the cleaned and filtered features dataframe
+
+    # Return the resulting dataframe
     return features
 
 

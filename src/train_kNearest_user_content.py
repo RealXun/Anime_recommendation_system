@@ -14,6 +14,12 @@ from sklearn.neighbors import NearestNeighbors
 ## scikit Preprocessing data libraries
 from sklearn.preprocessing import MinMaxScaler # Transform features by scaling each feature to a given range.
 
+# Utils libraries
+from utils import cleaning
+from utils import recommend
+from utils import testing
+from utils import training
+
 pd.options.mode.chained_assignment = None  # default='warn'
 
 #Preparing folder variables
@@ -44,9 +50,24 @@ k-Nearest Neighbors model on a given dataset, using specified
 parameters. It then saves the indices of the nearest neighbors 
 to a file and returns them.
 '''
-# Read in the anime features CSV file as a pandas DataFrame
-print('\nReading in anime features CSV file...')
-anime_features = pd.read_csv(processed_data + "/" + "anime_features.csv")
+print('\nOpening CSV file called "anime.csv"...')
+# CSV file called "anime.csv" from a directory called raw_data and returns the contents as a Pandas DataFrame
+anime = pd.read_csv(raw_data + "/" + "anime.csv") 
+print('Done.')
+
+print('\nOpening CSV file called "rating.csv.zip"...')
+# CSV file called "rating.csv.zip" from a directory called raw_data and returns the contents as a Pandas DataFrame
+rating = pd.read_csv(raw_data + "/" + "rating.csv.zip") 
+print('Done.')
+
+# Calling the cleaning functions
+print('\nCalling the cleaning functions...')
+anime_cleaned = cleaning.clean_anime_df(anime)
+print('Done.')
+
+# This function prepares the content-based features for a supervised learning model
+print('\nPreparing the content-based features for a supervised learning model...')
+anime_features = cleaning.prepare_supervised_content_based(anime_cleaned) 
 print('Done.')
 
 # Initialize MinMaxScaler object

@@ -123,10 +123,11 @@ def svd_testing_parameters(size=None):
         data = joblib.load(processed_data + "/" + "data_reader_for_different_models_whole_data.pkl")
 
     # Define parameter grid for grid search
-    param_grid = {'n_factors': [500], 
-                'n_epochs': [120], 
-                'lr_all': [0.01],
-                'reg_all': [0.05]}
+    
+    param_grid = {'n_factors': [100, 200, 300, 500], 
+                'n_epochs': [30, 60, 90, 120], 
+                'lr_all': [0.002, 0.005, 0.01],
+                'reg_all': [0.02, 0.05, 0.1]}
     
     # Create GridSearchCV object with SVD algorithmr
     gs = GridSearchCV(SVD, param_grid, measures=['rmse', 'mae','mse','fcp'], cv=10)
@@ -380,10 +381,11 @@ def svdpp_testing_parameters(size=None):
         data = joblib.load(processed_data + "/" + "data_reader_for_different_models_whole_data.pkl")
 
     # Define parameter grid for grid search
-    param_grid = {'n_factors': [300], 
-                'n_epochs': [20], 
-                'lr_all': [0.005],
-                'reg_all': [0.1]}
+    param_grid = {'n_factors': [50, 100, 200], 
+                'n_epochs': [10, 20, 30],
+                'lr_all': [0.002, 0.005, 0.01],
+                'reg_all': [0.1, 0.2, 0.4],
+                }
     
     # Create GridSearchCV object with SVD algorithmr
     gs = GridSearchCV(SVDpp, param_grid, measures=['rmse', 'mae','mse','fcp'], cv=10, n_jobs=-1)
